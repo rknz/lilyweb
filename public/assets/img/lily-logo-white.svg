@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 120" fill="none">
+  <defs>
+    <linearGradient id="li-grad-white" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="60%" stop-color="#E0E0E0"/>
+      <stop offset="100%" stop-color="#A6A6A6"/>
+    </linearGradient>
+    <linearGradient id="swoosh-grad-white" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#C8102E"/>
+      <stop offset="50%" stop-color="#E63956"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- LI Logo Mark -->
+  <g transform="translate(10, 8)">
+    <circle cx="82" cy="18" r="6" fill="#A6A6A6"/>
+    <circle cx="96" cy="24" r="7" fill="#D4D4D4"/>
+    <circle cx="106" cy="14" r="7" fill="#FFFFFF"/>
+
+    <path d="M42 30 H62 V85 H98 V98 H42 Z" fill="url(#li-grad-white)"/>
+    <path d="M82 30 H102 V72 H82 Z" fill="url(#li-grad-white)"/>
+
+    <path d="M2 98 C35 90, 75 75, 110 40 C125 24, 135 15, 135 15 C135 15, 126 35, 108 58 C75 90, 38 102, 2 98 Z" fill="url(#swoosh-grad-white)"/>
+  </g>
+
+  <!-- LILY INTERIORS Text in Light/White Style -->
+  <g transform="translate(170, 20)">
+    <text x="0" y="44" font-family="'Impact', 'Arial Black', sans-serif" font-size="44" font-weight="900" fill="#FFFFFF" letter-spacing="1">LILY INTERIORS</text>
+    <text x="5" y="70" font-family="'Plus Jakarta Sans', 'Arial Rounded MT Bold', sans-serif" font-size="19" font-weight="800" fill="#FF8093" letter-spacing="0.5">in the touch of modernity</text>
+  </g>
+</svg>

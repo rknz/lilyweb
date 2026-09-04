@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 300" fill="none">
+  <rect width="440" height="300" fill="#221A15"/>
+  <!-- Warm LED Shelving on Wall -->
+  <rect x="20" y="30" width="400" height="120" fill="#38291F" rx="6"/>
+  <line x1="20" y1="80" x2="420" y2="80" stroke="#FFD285" stroke-width="3"/>
+  <rect x="50" y="45" width="20" height="32" fill="#B8860B"/>
+  <rect x="80" y="50" width="35" height="28" fill="#D9D4CC"/>
+  <line x1="20" y1="130" x2="420" y2="130" stroke="#FFD285" stroke-width="3"/>
+  <!-- Executive Desk -->
+  <rect x="60" y="170" width="320" height="22" rx="4" fill="#7A4B29"/>
+  <rect x="80" y="192" width="24" height="80" fill="#422916"/>
+  <rect x="336" y="192" width="24" height="80" fill="#422916"/>
+  <!-- Laptop on desk -->
+  <rect x="180" y="150" width="80" height="20" rx="3" fill="#DCDCDC"/>
+  <!-- Office Chair -->
+  <path d="M190 120 C180 130 180 190 200 240 C240 240 260 190 250 120 Z" fill="#8F0B20"/>
+  <!-- Floor -->
+  <rect x="0" y="260" width="440" height="40" fill="#14100D"/>
+</svg>

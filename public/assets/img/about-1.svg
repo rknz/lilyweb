@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 380" fill="none">
+  <rect width="540" height="380" fill="#2E241E"/>
+  <rect x="0" y="0" width="540" height="120" fill="#1F1813"/>
+  <!-- Pendant Lights -->
+  <line x1="160" y1="0" x2="160" y2="90" stroke="#B8860B" stroke-width="2"/>
+  <circle cx="160" cy="100" r="16" fill="#FFD700" opacity="0.9"/>
+  <line x1="270" y1="0" x2="270" y2="70" stroke="#B8860B" stroke-width="2"/>
+  <circle cx="270" cy="80" r="20" fill="#FFD700" opacity="0.9"/>
+  <line x1="380" y1="0" x2="380" y2="90" stroke="#B8860B" stroke-width="2"/>
+  <circle cx="380" cy="100" r="16" fill="#FFD700" opacity="0.9"/>
+  <!-- Light glow -->
+  <ellipse cx="270" cy="160" rx="200" ry="80" fill="#FFE4B5" opacity="0.15"/>
+  <!-- Dining Table -->
+  <rect x="80" y="210" width="380" height="24" rx="4" fill="#5C3A21"/>
+  <rect x="110" y="234" width="20" height="110" fill="#3D2615"/>
+  <rect x="410" y="234" width="20" height="110" fill="#3D2615"/>
+  <!-- Chairs -->
+  <rect x="110" y="160" width="55" height="90" rx="8" fill="#4A4540"/>
+  <rect x="200" y="160" width="55" height="90" rx="8" fill="#4A4540"/>
+  <rect x="290" y="160" width="55" height="90" rx="8" fill="#4A4540"/>
+  <rect x="380" y="160" width="55" height="90" rx="8" fill="#4A4540"/>
+  <!-- Floor -->
+  <rect x="0" y="320" width="540" height="60" fill="#1C1713"/>
+</svg>

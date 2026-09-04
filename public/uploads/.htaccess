@@ -1,0 +1,21 @@
+# Disable script execution for uploaded files
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+Options -ExecCGI -Indexes
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl .py .fcgi .fpl .phtml .shtml .asp .aspx .sh
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl .py .fcgi .fpl .phtml .shtml .asp .aspx .sh
+
+# Block access to sensitive files
+<FilesMatch "\.(php|phar|phtml|php3|php4|php5|php7|sh|cgi|pl|py)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

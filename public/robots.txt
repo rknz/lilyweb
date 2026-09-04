@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin
+
+# Google Gemini & OpenAI AI Search Crawlers
+User-agent: Google-Extended
+Allow: /
+User-agent: GPTBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://lilyinteriorsbd.com/sitemap.xml

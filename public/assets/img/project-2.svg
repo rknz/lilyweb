@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" fill="none">
+  <rect width="600" height="400" fill="#252427"/>
+  <!-- Headboard Wall -->
+  <rect x="50" y="50" width="500" height="230" fill="#3B383D" rx="6"/>
+  <line x1="50" y1="120" x2="550" y2="120" stroke="#FFD8A8" stroke-width="2"/>
+  <rect x="120" y="80" width="100" height="35" fill="#545059" rx="3"/>
+  <rect x="380" y="80" width="100" height="35" fill="#545059" rx="3"/>
+  <!-- Bed -->
+  <rect x="140" y="190" width="320" height="150" rx="8" fill="#59545F"/>
+  <rect x="160" y="170" width="120" height="40" rx="6" fill="#D2CCD9"/>
+  <rect x="320" y="170" width="120" height="40" rx="6" fill="#D2CCD9"/>
+  <rect x="140" y="240" width="320" height="90" rx="4" fill="#C8102E" opacity="0.8"/>
+  <!-- Nightstands -->
+  <rect x="70" y="230" width="55" height="70" rx="4" fill="#312E35"/>
+  <rect x="475" y="230" width="55" height="70" rx="4" fill="#312E35"/>
+  <circle cx="97" cy="210" r="12" fill="#FFD8A8" opacity="0.8"/>
+  <circle cx="502" cy="210" r="12" fill="#FFD8A8" opacity="0.8"/>
+  <rect x="0" y="355" width="600" height="45" fill="#181719"/>
+</svg>

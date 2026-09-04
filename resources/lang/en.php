@@ -1,0 +1,155 @@
+<?php
+
+return [
+    // Top Strip & Navigation
+    'dhaka_bangladesh'     => 'Dhaka, Bangladesh',
+    'nav_home'             => 'Home',
+    'nav_about'            => 'About',
+    'nav_services'         => 'Services',
+    'nav_projects'         => 'Projects',
+    'nav_process'          => 'Process',
+    'nav_faq'              => 'FAQ',
+    'nav_contact'          => 'Contact',
+    'get_consultation_btn' => 'Get Free Consultation &rarr;',
+
+    // Hero Section
+    'hero_kicker'          => 'DESIGN &bull; CREATE &bull; INSPIRE',
+    'hero_h1_prefix'       => 'We Design Spaces That',
+    'hero_h1_highlight'    => 'Inspire',
+    'hero_h1_suffix'       => 'Life',
+    'hero_sub'             => 'Timeless interior design solutions that combine functionality, creativity and elegance tailored to your lifestyle.',
+    'explore_projects_btn' => 'Explore Projects &rarr;',
+    'watch_showreel_btn'   => 'Watch Our Showreel',
+
+    // Stats Strip
+    'stat_1_val'           => '250+',
+    'stat_1_lbl'           => 'Projects Completed',
+    'stat_2_val'           => '180+',
+    'stat_2_lbl'           => 'Happy Clients',
+    'stat_3_val'           => '8+',
+    'stat_3_lbl'           => 'Years Experience',
+    'stat_4_val'           => '15+',
+    'stat_4_lbl'           => 'Expert Designers',
+    'stat_5_val'           => '100%',
+    'stat_5_lbl'           => 'Client Satisfaction',
+
+    // About Section
+    'about_kicker'         => 'ABOUT LILY INTERIORS',
+    'about_h2'             => 'Designing Dreams, Building Reality',
+    'about_lead'           => 'Lily Interiors is a trusted interior design firm in Bangladesh. We create beautiful, functional and timeless spaces with creativity, quality and commitment.',
+    'more_about_us'        => 'More About Us &rarr;',
+    'years_experience'     => 'Years of Experience',
+
+    // About Page
+    'about_page_kicker'    => 'ABOUT LILY INTERIOR',    'about_page_h1'        => 'Crafting Beautiful Spaces Since 2017',
+    'about_page_lead'      => 'Lily Interior is a trusted, fully-registered interior design firm based in Dhaka, Bangladesh. For over 8 years we have been transforming houses, offices and commercial spaces into timeless works of art.',
+    'about_who_title'      => 'Who We Are',
+    'about_who_text'       => 'We are a dedicated team of architects, interior designers and skilled craftsmen who believe every space has a story. From concept to handover, we manage every detail with passion, precision and professionalism.',
+    'about_experience_badge' => '8+',
+    'about_experience_lbl' => 'Years of Experience',
+    'about_since'          => 'Working since 2017',
+    'about_services_title' => 'What We Do',
+    'about_services_sub'   => 'Our full-service approach means you get everything under one roof.',
+    'about_reg_title'      => 'Registered & Fully Compliant',
+    'about_reg_sub'        => 'We are legally registered and fully tax-compliant with the government of Bangladesh.',
+    'about_reg_item1'      => 'Trade License',
+    'about_reg_item2'      => 'TIN (Taxpayer Identification Number)',
+    'about_reg_item3'      => 'VAT Registration',
+    'about_reg_text'       => 'All official documents are available for verification on request, so you can work with complete peace of mind.',
+    'about_guarantee_title' => 'Our Promise To You',
+    'about_guarantee_item1_title' => '100% Quality Guarantee',
+    'about_guarantee_item1_text' => 'We stand behind every project with a complete quality guarantee, using premium materials and finishing.',
+    'about_guarantee_item2_title' => '100% Less Time',
+    'about_guarantee_item2_text' => 'Our streamlined process and dedicated team allow us to deliver projects on schedule, saving you valuable time.',
+    'about_guarantee_item3_title' => 'Transparent Pricing',
+    'about_guarantee_item3_text' => 'Clear, upfront quotes with no hidden costs — what we agree is what you pay.',
+    'about_track_title'    => 'Our Track Record',
+    'about_cta_title'      => 'Let&rsquo;s Build Something Beautiful',
+    'about_cta_text'       => 'Have a project in mind? Talk to our team today and get a free consultation.',
+    'about_cta_btn'        => 'Get Free Consultation &rarr;',
+
+    // About Page Service Cards
+    'service_interior_title'    => 'Interior Design',
+    'service_interior_text'     => 'Complete residential &amp; commercial interior design tailored to your lifestyle.',
+    'service_architecture_title'=> 'Architecture',
+    'service_architecture_text' => 'Professional architectural planning and space layout from concept to completion.',
+    'service_renovation_title'  => 'Renovation',
+    'service_renovation_text'   => 'Full-scale renovation that transforms old spaces into modern, functional ones.',
+    'service_furniture_title'   => 'Custom Furniture',
+    'service_furniture_text'    => 'Bespoke furniture crafted to fit your space perfectly and elevate your interior.',
+    'service_space_title'       => 'Space Planning',
+    'service_space_text'        => 'Smart space planning that maximizes usability, flow and natural light.',
+    'service_project_title'     => 'Project Management',
+    'service_project_text'      => 'End-to-end project management ensuring quality, on-time delivery and 100% guarantee.',
+
+    // Services Section
+    'services_kicker'      => 'OUR SERVICES',
+    'services_h2'          => 'Interior Solutions Tailored For You',
+    'view_all_services'    => 'View All Services &rarr;',
+
+    // Process Section
+    'process_kicker'       => 'OUR PROCESS',
+    'process_h2'           => 'Our Design &amp; Execution Process',
+
+    // Portfolio Section
+    'portfolio_kicker'     => 'OUR LATEST PROJECTS',
+    'portfolio_h2'         => 'Spaces We&rsquo;re Proud Of',
+    'view_all_projects'    => 'View All Projects &rarr;',
+    'see_more_projects'    => 'See More Projects',
+    // Testimonials Section
+    'testimonials_kicker'  => 'CLIENT STORIES',
+    'testimonials_h2'      => 'What Our Clients Say',
+    'testimonials_sub'     => 'Real experiences from homeowners and corporate clients who trusted Lily Interiors with their dream spaces.',
+
+    // Contact Section
+    'contact_kicker'       => 'LET&rsquo;S WORK TOGETHER',
+    'contact_h2'           => 'Have A Project In Mind?',
+    'contact_sub'          => 'We&rsquo;re here to help you create beautiful and functional spaces.',
+    'call_us'              => 'Call Us',
+    'email_us'             => 'Email Us',
+    'visit_us'             => 'Visit Us',
+    'address_val'          => 'House 123, Road 45, Dhanmondi, Dhaka-1205',
+    'send_message_title'   => 'Send Us A Message',
+    'your_name_ph'         => 'Your Name',
+    'phone_number_ph'      => 'Phone Number',
+    'email_address_ph'     => 'Email Address',
+    'your_message_ph'      => 'Your Message',
+    'send_message_btn'     => 'Send Message &rarr;',
+
+    // Footer
+    'footer_bio'           => 'We create timeless interiors that inspire life. Quality, creativity and client satisfaction are our priority.',
+    'explore'              => 'Explore',
+    'help_support'         => 'Help &amp; Support',
+    'stay_updated'         => 'Stay Updated',
+    'newsletter_sub'       => 'Subscribe to get our latest updates &amp; new projects.',
+    'newsletter_ph'        => 'Your email address',
+    'all_rights'           => 'All rights reserved.',
+    'designed_with_love'   => 'Designed with ❤️ by Lily Interiors Team',
+
+    // Project Details
+    'back_to_projects'     => '&larr; Back to All Projects',
+    'completed_project'    => 'Completed Project',
+    'get_quote_btn'        => 'Get a Quote For Similar Project &rarr;',
+    'download_proposal'    => 'Download Proposal (PDF)',
+    'tab_details'          => 'Project Details',
+    'tab_gallery'          => 'Gallery',
+    'tab_floorplan'        => 'Floor Plan',
+    'tab_materials'        => 'Materials',
+    'tab_proposal'         => 'Proposal',
+    'project_description'  => 'Project Description',
+    'key_features'         => 'Key Features',
+    'project_highlights'   => 'Project Highlights',
+    'lets_work_together'   => 'Let&rsquo;s Work Together',
+    'lets_work_sub'        => 'Have a project in mind? We&rsquo;re here to bring your dream space to life.',
+    'contact_us_btn'       => 'Contact Us &rarr;',
+    'related_projects'     => 'Related Projects',
+    'more_inspiration'     => 'MORE INSPIRATION',
+
+    // Metadata Labels
+    'category_lbl'         => 'Category',
+    'area_lbl'             => 'Area',
+    'year_lbl'             => 'Year',
+    'rooms_lbl'            => 'Rooms',
+    'style_lbl'            => 'Style',
+    'status_lbl'           => 'Status',
+];

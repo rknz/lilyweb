@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" fill="none">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#EBE7DF"/>
+      <stop offset="100%" stop-color="#D5CEBE"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8C6239"/>
+      <stop offset="50%" stop-color="#734F29"/>
+      <stop offset="100%" stop-color="#54381B"/>
+    </linearGradient>
+    <linearGradient id="warmglow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFEACC" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FFBE6B" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="sofa" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D9D4CC"/>
+      <stop offset="100%" stop-color="#B8B0A2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Wall -->
+  <rect width="800" height="520" fill="url(#wall)"/>
+  
+  <!-- Ceiling & Cove Lighting -->
+  <rect x="0" y="0" width="800" height="60" fill="#F4F1EA"/>
+  <rect x="100" y="50" width="600" height="12" fill="#FFEACC" opacity="0.6"/>
+  <circle cx="480" cy="65" r="90" stroke="#E0DACB" stroke-width="8" fill="none"/>
+  <circle cx="480" cy="65" r="70" stroke="#FFE4B5" stroke-width="4" fill="none"/>
+  <rect x="400" y="60" width="160" height="150" fill="url(#warmglow)"/>
+
+  <!-- Wood Paneling & Shelving on Right -->
+  <rect x="580" y="60" width="220" height="460" fill="url(#wood)"/>
+  <!-- Shelves with warm glow -->
+  <line x1="580" y1="140" x2="800" y2="140" stroke="#A67C52" stroke-width="8"/>
+  <rect x="580" y="148" width="220" height="20" fill="url(#warmglow)"/>
+  <rect x="620" y="100" width="30" height="36" fill="#403020" rx="3"/>
+  <rect x="660" y="90" width="24" height="46" fill="#B8860B" rx="2"/>
+  
+  <line x1="580" y1="240" x2="800" y2="240" stroke="#A67C52" stroke-width="8"/>
+  <rect x="580" y="248" width="220" height="20" fill="url(#warmglow)"/>
+  <rect x="700" y="200" width="40" height="35" fill="#3D3028" rx="4"/>
+  <circle cx="635" cy="220" r="14" fill="#C8102E"/>
+
+  <line x1="580" y1="340" x2="800" y2="340" stroke="#A67C52" stroke-width="8"/>
+  <rect x="580" y="348" width="220" height="20" fill="url(#warmglow)"/>
+
+  <!-- Wall Art / Center Panel -->
+  <rect x="260" y="90" width="280" height="180" fill="#181818" rx="6"/>
+  <rect x="270" y="100" width="260" height="160" fill="#242424" rx="4"/>
+  <!-- TV display glow -->
+  <circle cx="400" cy="180" r="45" fill="#C8102E" opacity="0.15"/>
+
+  <!-- Left Window / Sheer Curtains -->
+  <rect x="0" y="60" width="220" height="460" fill="#C5D3DC" opacity="0.6"/>
+  <rect x="30" y="60" width="40" height="460" fill="#FFFFFF" opacity="0.4"/>
+  <rect x="120" y="60" width="50" height="460" fill="#FFFFFF" opacity="0.3"/>
+
+  <!-- Indoor Plant -->
+  <path d="M220 280 Q210 210 240 180 Q250 220 230 290 Z" fill="#2E5339"/>
+  <path d="M235 270 Q270 200 300 210 Q280 250 240 285 Z" fill="#3E6B4B"/>
+  <path d="M225 290 Q200 240 190 250 Q205 280 225 300 Z" fill="#23422C"/>
+  <rect x="215" y="280" width="30" height="50" fill="#FFFFFF" rx="4"/>
+
+  <!-- Luxury Sectional Sofa -->
+  <path d="M80 340 L520 340 Q540 340 540 360 L540 450 L60 450 L60 360 Q60 340 80 340 Z" fill="url(#sofa)"/>
+  <!-- Cushions -->
+  <rect x="90" y="310" width="130" height="60" rx="10" fill="#C7C0B3"/>
+  <rect x="230" y="310" width="130" height="60" rx="10" fill="#C7C0B3"/>
+  <rect x="370" y="310" width="130" height="60" rx="10" fill="#C7C0B3"/>
+  <rect x="420" y="325" width="60" height="45" rx="6" fill="#8F0B20" transform="rotate(-8 420 325)"/>
+
+  <!-- Modern Coffee Table -->
+  <ellipse cx="360" cy="450" rx="140" ry="32" fill="#54381B"/>
+  <ellipse cx="360" cy="442" rx="136" ry="28" fill="#8C6239"/>
+  <rect x="320" y="425" width="35" height="15" fill="#FFFFFF" rx="2"/>
+  <circle cx="390" cy="432" r="10" fill="#B8860B"/>
+
+  <!-- Accent Armchair -->
+  <path d="M600 360 C580 370 570 410 590 460 C640 470 690 450 710 410 C720 370 680 350 640 355 Z" fill="#8F0B20"/>
+  <path d="M610 380 C600 395 605 425 630 435 C660 435 680 415 675 390 C665 375 630 370 610 380 Z" fill="#C8102E"/>
+  <!-- Floor -->
+  <rect x="0" y="480" width="800" height="40" fill="#9E9484"/>
+</svg>

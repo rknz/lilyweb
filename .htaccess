@@ -1,0 +1,42 @@
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # ------------------------------------------------------------------
+    # 1. Block direct access to sensitive files & the framework folders.
+    #    This stops PHP files like /config/database.php from being executed
+    #    directly (which was returning 500) and keeps .env/.git private.
+    # ------------------------------------------------------------------
+    RewriteRule ^(?:\.env|\.git|composer\.|vendor/|app/|config/|database/|resources/|routes/|storage/) - [F,L,NC]
+
+    # ------------------------------------------------------------------
+    # 2. If the request is already inside /public, stop rewriting.
+    #    (prevents the root rule below from double-forwarding and looping)
+    # ------------------------------------------------------------------
+    RewriteRule ^public/ - [L,NC]
+
+    # ------------------------------------------------------------------
+    # 3. Forward everything else to /public/ (the real DocumentRoot).
+    #    Skip URLs that map to a real existing file or directory at root.
+    # ------------------------------------------------------------------
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ /public/$1 [QSA,L]
+</IfModule>
+
+# ------------------------------------------------------------------
+# Block direct access to sensitive file types at root level
+# ------------------------------------------------------------------
+<FilesMatch "\.(sql|log|md|env|ini|yml|yaml|bak|sh|lock)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+Options -Indexes

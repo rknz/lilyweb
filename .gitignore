@@ -1,0 +1,17 @@
+# Environment credentials (Never commit to GitHub)
+.env
+.env.production
+.env.local
+
+# Storage sessions, logs, backups
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/backups/*
+!/storage/backups/.gitkeep
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
