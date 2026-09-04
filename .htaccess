@@ -2,7 +2,6 @@ DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
 
     # Block direct access to sensitive framework folders
     RewriteRule ^(?:\.env|\.git|app/|config/|database/|resources/|storage/) - [F,L,NC]

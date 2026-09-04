@@ -2702,32 +2702,144 @@ html[data-theme="dark"] .fa-back-to-top {
         font-size: 0.68rem;
     }
 
-    /* 5. Services Section Mobile (2-Column Grid as in Screen 2) */
+    /* 5. Services Section Mobile (Clean Vertical Architectural 2-Column Cards) */
     .services-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 0.85rem;
-        margin-bottom: 1.5rem;
+        gap: clamp(0.65rem, 2.5vw, 0.95rem);
+        margin-bottom: 1.6rem;
     }
     .service-card {
-        padding: 1.25rem 0.85rem;
+        padding: 1.35rem 0.85rem 1.15rem;
         text-align: center;
         align-items: center;
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--radius-md);
+        position: relative;
+        background: var(--surface-card-light);
+        border: 1.5px solid var(--border-card-light);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+        min-height: 100%;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    .service-icon-wrap {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 0.8rem;
+    .service-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(200, 16, 46, 0.12);
+        border-color: rgba(200, 16, 46, 0.35);
     }
-    .service-card h3 {
-        font-size: 0.94rem;
-        margin-bottom: 0.35rem;
+    .service-watermark {
+        font-size: 1.25rem;
+        top: 0.65rem;
+        right: 0.75rem;
+        opacity: 0.06;
     }
-    .service-card p {
+    .service-top-row {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+        width: 100%;
+    }
+    .service-icon-pod {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        margin-bottom: 0.45rem;
+        background: linear-gradient(135deg, rgba(200, 16, 46, 0.12) 0%, rgba(200, 16, 46, 0.03) 100%);
+        border: 1.5px solid rgba(200, 16, 46, 0.22);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 4px 12px rgba(200, 16, 46, 0.1);
+        flex-shrink: 0;
+    }
+    .service-icon-pod svg {
+        width: 24px;
+        height: 24px;
+        stroke: var(--crimson);
+    }
+    .service-badge-pill {
+        display: inline-block;
+        font-size: 0.66rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--crimson);
+        background: transparent;
+        border: none;
+        padding: 0;
+        margin-bottom: 0.15rem;
+        line-height: 1.2;
+    }
+    .service-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+        flex-grow: 1;
+    }
+    .service-title {
+        font-size: clamp(0.92rem, 3.4vw, 1.02rem);
+        font-weight: 800;
+        color: var(--charcoal-deep);
+        margin-bottom: 0.45rem;
+        line-height: 1.32;
+        letter-spacing: -0.01em;
+    }
+    .service-desc {
         font-size: 0.78rem;
+        color: var(--charcoal-muted);
         line-height: 1.45;
+        margin-bottom: 0.65rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .service-footer-cta {
+        margin-top: auto;
+        padding-top: 0.65rem;
+        border-top: 1px dashed var(--border-subtle);
+        width: 100%;
+    }
+    .service-cta-link {
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--crimson);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+    }
+    .service-cta-arrow {
+        font-size: 0.85rem;
     }
     .section-header-split .section-top-link {
         display: none;
+    }
+
+    @media (max-width: 360px) {
+        .services-grid {
+            gap: 0.55rem;
+        }
+        .service-card {
+            padding: 1.1rem 0.6rem 0.95rem;
+        }
+        .service-icon-pod {
+            width: 42px;
+            height: 42px;
+        }
+        .service-icon-pod svg {
+            width: 20px;
+            height: 20px;
+        }
+        .service-title {
+            font-size: 0.86rem;
+        }
+        .service-desc {
+            display: none;
+        }
     }
 
     /* 6. Process Section Mobile Vertical Stepper (as in Screen 3) */

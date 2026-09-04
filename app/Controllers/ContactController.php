@@ -97,4 +97,42 @@ final class ContactController extends Controller
 
         return Response::redirect('/#contact');
     }
+
+    /**
+     * Handle public newsletter subscription.
+     */
+    public function newsletter(): Response
+    {
+        $email = trim((string) Request::post('email', ''));
+        $isBn = Lang::isBn();
+
+        if ($email === '' || !Security::isValidEmail($email)) {
+            Session::flash('error', $isBn ? 'অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন।' : 'Please provide a valid email address.');
+            return Response::redirect('/#contact');
+        }
+
+        try {
+            $pdo = Database::connect();
+            $stmt = $pdo->prepare("
+                INSERT INTO `lilyweb_contact_submissions`
+                (`full_name`, `phone_number`, `email_address`, `service_slug`, `project_location`, `message`, `status`, `ip_address`, `user_agent`)
+                VALUES (:name, :phone, :email, 'newsletter', NULL, 'Subscribed to Lily Interiors Newsletter', 'new', :ip, :ua)
+            ");
+            $stmt->execute([
+                ':name' => 'Newsletter Subscriber',
+                ':phone' => 'N/A',
+                ':email' => $email,
+                ':ip' => Request::ip(),
+                ':ua' => Request::userAgent(),
+            ]);
+
+            Session::flash('success', $isBn 
+                ? 'ধন্যবাদ! নিউজলেটার সাবস্ক্রিপশন সফল হয়েছে।' 
+                : 'Thank you! You have been successfully subscribed to our newsletter.');
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Could not process newsletter subscription at this time.');
+        }
+
+        return Response::redirect('/#contact');
+    }
 }

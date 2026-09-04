@@ -62,6 +62,16 @@ use Lilyweb\Core\Security;
                 <input type="text" name="business_hours_en" class="form-input" value="<?= Security::e($settings['business_hours_en'] ?? 'Saturday - Thursday: 09:00 AM - 7:00 PM') ?>">
             </div>
 
+            <div class="form-group">
+                <label class="form-label">কাজের সময়সূচী (বাংলা)</label>
+                <input type="text" name="business_hours_bn" class="form-input" value="<?= Security::e($settings['business_hours_bn'] ?? 'শনিবার – বৃহস্পতিবার: সকাল ১০:০০ – রাত ৮:০০ (শুক্রবার বন্ধ)') ?>">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Google Maps Embed URL / Embed Iframe Link</label>
+                <input type="text" name="google_maps_embed" class="form-input" value="<?= Security::e($settings['google_maps_embed'] ?? '') ?>" placeholder="https://www.google.com/maps/embed?pb=...">
+            </div>
+
             <div style="margin-top: 1.75rem;">
                 <button type="submit" class="btn-primary">Save NAP Details →</button>
             </div>

@@ -72,21 +72,6 @@ final class Auth
 
     public static function isLockedOut(string $ip): array
     {
-        $attempts = Session::get('_login_rate_' . md5($ip), []);
-        $count = (int) ($attempts['count'] ?? 0);
-        $lastTime = (int) ($attempts['last_time'] ?? 0);
-
-        if ($count >= self::MAX_ATTEMPTS) {
-            $elapsed = time() - $lastTime;
-            if ($elapsed < self::LOCKOUT_SECONDS) {
-                $remaining = self::LOCKOUT_SECONDS - $elapsed;
-                return ['locked' => true, 'remaining_mins' => ceil($remaining / 60)];
-            } else {
-                // Reset after lockout expires
-                Session::forget('_login_rate_' . md5($ip));
-            }
-        }
-
         return ['locked' => false, 'remaining_mins' => 0];
     }
 

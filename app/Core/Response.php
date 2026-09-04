@@ -52,7 +52,30 @@ final class Response
         foreach ($this->headers as $name => $value) {
             header($name . ': ' . $value);
         }
-        echo $this->content;
+
+        $body = $this->content;
+        $base = Request::basePath();
+        $isHtml = !isset($this->headers['Content-Type']) || str_contains($this->headers['Content-Type'], 'text/html');
+
+        if ($base !== '' && $base !== '/' && $isHtml) {
+            $body = preg_replace_callback(
+                '#\b(href|src|srcset|action|data-src|data-image)\s*=\s*(["\'])/([^"\'\s>]*)(["\'])#i',
+                function ($m) use ($base) {
+                    $attr = $m[1];
+                    $quote = $m[2];
+                    $path = $m[3];
+                    $closingQuote = $m[4];
+                    $cleanBase = ltrim($base, '/');
+                    if ($path !== '' && (str_starts_with($path, $cleanBase) || str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '//'))) {
+                        return $m[0];
+                    }
+                    return $attr . '=' . $quote . $base . ($path !== '' ? '/' . $path : '/') . $closingQuote;
+                },
+                $body
+            );
+        }
+
+        echo $body;
     }
 
     public static function redirect(string $url, int $status = 302): self

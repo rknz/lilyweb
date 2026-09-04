@@ -34,6 +34,19 @@ Router::get('/terms', [PageController::class, 'terms']);
 Router::get('/terms-and-conditions', [PageController::class, 'terms']);
 Router::get('/terms-conditions', [PageController::class, 'terms']);
 
+// 301 Permanent Redirects for Legacy .html & external URLs
+Router::get('/about.html', fn() => \Lilyweb\Core\Response::redirect('/about', 301));
+Router::get('/services.html', fn() => \Lilyweb\Core\Response::redirect('/services', 301));
+Router::get('/project-v2.html', fn() => \Lilyweb\Core\Response::redirect('/projects', 301));
+Router::get('/projects.html', fn() => \Lilyweb\Core\Response::redirect('/projects', 301));
+Router::get('/blog.html', fn() => \Lilyweb\Core\Response::redirect('/', 301));
+Router::get('/blog', fn() => \Lilyweb\Core\Response::redirect('/', 301));
+Router::get('/contact.html', fn() => \Lilyweb\Core\Response::redirect('/contact', 301));
+Router::get('/index.html', fn() => \Lilyweb\Core\Response::redirect('/', 301));
+Router::get('/faq.html', fn() => \Lilyweb\Core\Response::redirect('/faq', 301));
+Router::get('/privacy-policy.html', fn() => \Lilyweb\Core\Response::redirect('/privacy-policy', 301));
+Router::get('/terms.html', fn() => \Lilyweb\Core\Response::redirect('/terms', 301));
+
 // Foundation status test page
 Router::get('/foundation', [PlaceholderController::class, 'index']);
 
@@ -108,13 +121,8 @@ Router::get('/admin/faq/edit/{id}', [FaqController::class, 'edit']);
 Router::post('/admin/faq/save', [FaqController::class, 'save']);
 Router::post('/admin/faq/delete', [FaqController::class, 'delete']);
 
-// Custom Content Pages Module (Bilingual EN/BN)
-use Lilyweb\App\Controllers\Admin\PageController as AdminPageController;
-Router::get('/admin/pages', [AdminPageController::class, 'index']);
-Router::get('/admin/pages/create', [AdminPageController::class, 'create']);
-Router::get('/admin/pages/edit/{id}', [AdminPageController::class, 'edit']);
-Router::post('/admin/pages/save', [AdminPageController::class, 'save']);
-Router::post('/admin/pages/delete', [AdminPageController::class, 'delete']);
+// Pages alias
+Router::get('/admin/pages', fn() => \Lilyweb\Core\Response::redirect('/admin/homepage'));
 
 // Project Categories Module
 use Lilyweb\App\Controllers\Admin\CategoryController;
@@ -136,6 +144,7 @@ Router::post('/admin/projects/delete', [AdminProjectController::class, 'delete']
 use Lilyweb\App\Controllers\ContactController;
 Router::post('/contact', [ContactController::class, 'submit']);
 Router::post('/consultation', [ContactController::class, 'submit']);
+Router::post('/newsletter', [ContactController::class, 'newsletter']);
 
 // Media Management Module
 use Lilyweb\App\Controllers\Admin\MediaController;

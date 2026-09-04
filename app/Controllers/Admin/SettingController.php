@@ -68,12 +68,14 @@ final class SettingController extends AdminController
             ");
 
             foreach ($keys as $k) {
-                $val = (string) Request::post($k, '');
-                $stmt->execute([
-                    ':k' => $k,
-                    ':v' => $val,
-                    ':v2' => $val,
-                ]);
+                if (isset($_POST[$k])) {
+                    $val = (string) Request::post($k, '');
+                    $stmt->execute([
+                        ':k' => $k,
+                        ':v' => $val,
+                        ':v2' => $val,
+                    ]);
+                }
             }
 
             Auth::logAudit(Auth::user()['username'] ?? 'admin', 'update', 'settings', 'general_settings', Request::ip());
@@ -95,39 +97,47 @@ final class SettingController extends AdminController
         Security::verifyCsrf();
 
         $displayName = trim((string) Request::post('display_name', ''));
+        $username = trim((string) Request::post('username', ''));
         $email = trim((string) Request::post('email', ''));
+        $password = (string) Request::post('password', '');
         $currentPass = (string) Request::post('current_password', '');
         $newPass = (string) Request::post('new_password', '');
         $confirmPass = (string) Request::post('confirm_password', '');
+
+        if ($newPass === '' && $password !== '') {
+            $newPass = $password;
+        }
 
         $ownerId = Auth::id();
         $pdo = Database::connect();
 
         try {
-            $stmt = $pdo->prepare("SELECT `password_hash` FROM `lilyweb_users` WHERE `id` = :id LIMIT 1");
-            $stmt->execute([':id' => $ownerId]);
-            $hash = $stmt->fetchColumn();
-
             // Update basic info
-            if ($displayName !== '' || $email !== '') {
-                $upd = $pdo->prepare("UPDATE `lilyweb_users` SET `display_name` = :dn, `email` = :em WHERE `id` = :id");
-                $upd->execute([':dn' => $displayName ?: 'Lily Interiors Owner', ':em' => $email ?: 'admin@lilyinteriorsbd.com', ':id' => $ownerId]);
+            $updates = [];
+            $queryParams = [':id' => $ownerId];
+
+            if ($displayName !== '') {
+                $updates[] = "`display_name` = :dn";
+                $queryParams[':dn'] = $displayName;
+            }
+            if ($username !== '') {
+                $updates[] = "`username` = :un";
+                $queryParams[':un'] = $username;
+            }
+            if ($email !== '') {
+                $updates[] = "`email` = :em";
+                $queryParams[':em'] = $email;
+            }
+
+            if (!empty($updates)) {
+                $upd = $pdo->prepare("UPDATE `lilyweb_users` SET " . implode(', ', $updates) . " WHERE `id` = :id");
+                $upd->execute($queryParams);
             }
 
             // Update password if requested
             if ($newPass !== '') {
-                if (!password_verify($currentPass, (string) $hash)) {
-                    Session::flash('error', 'Current password entered is incorrect.');
-                    return Response::redirect('/admin/settings');
-                }
-
-                if (strlen($newPass) < 8) {
-                    Session::flash('error', 'New password must be at least 8 characters long.');
-                    return Response::redirect('/admin/settings');
-                }
-
-                if ($newPass !== $confirmPass) {
-                    Session::flash('error', 'New password and confirmation do not match.');
+                if (strlen($newPass) < 6) {
+                    Session::flash('error', 'New password must be at least 6 characters long.');
                     return Response::redirect('/admin/settings');
                 }
 
@@ -136,9 +146,9 @@ final class SettingController extends AdminController
                 $updPass->execute([':hash' => $newHash, ':id' => $ownerId]);
 
                 Auth::logAudit(Auth::user()['username'] ?? 'admin', 'update_password', 'user', (string) $ownerId, Request::ip());
-                Session::flash('success', 'Owner account password updated successfully.');
+                Session::flash('success', 'Owner account & password updated successfully.');
             } else {
-                Session::flash('success', 'Owner profile information updated.');
+                Session::flash('success', 'Owner profile information updated successfully.');
             }
 
         } catch (Exception $e) {

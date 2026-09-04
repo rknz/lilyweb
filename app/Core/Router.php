@@ -42,8 +42,9 @@ final class Router
      */
     public static function dispatch(string $method, string $path): mixed
     {
+        $upperMethod = strtoupper($method);
         foreach (self::$routes as $route) {
-            if ($route['method'] !== 'ANY' && $route['method'] !== strtoupper($method)) {
+            if ($route['method'] !== 'ANY' && $route['method'] !== $upperMethod && !($route['method'] === 'GET' && $upperMethod === 'HEAD')) {
                 continue;
             }
 
