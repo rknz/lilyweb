@@ -113,16 +113,26 @@ final class MediaController extends AdminController
         $cleanBase = preg_replace('/[^a-zA-Z0-9_\-]+/', '-', pathinfo($origName, PATHINFO_FILENAME));
         $uniqueFilename = $cleanBase . '_' . time() . '.' . $ext;
 
-        $targetDir = dirname(__DIR__, 3) . '/public/uploads';
+        $projectRoot = dirname(__DIR__, 3);
+        $targetDir = $projectRoot . '/uploads';
         if (!is_dir($targetDir)) {
-            @mkdir($targetDir, 0755, true);
+            @mkdir($targetDir, 0777, true);
+        }
+        $publicDir = $projectRoot . '/public/uploads';
+        if (!is_dir($publicDir)) {
+            @mkdir($publicDir, 0777, true);
         }
 
         $targetPath = $targetDir . '/' . $uniqueFilename;
-        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+        $moved = @move_uploaded_file($file['tmp_name'], $targetPath);
+        if (!$moved) {
+            $moved = @copy($file['tmp_name'], $targetPath);
+        }
+        if (!$moved) {
             Session::flash('error', 'Failed to store uploaded file on server.');
             return Response::redirect('/admin/media');
         }
+        @copy($targetPath, $publicDir . '/' . $uniqueFilename);
 
         $storagePath = '/uploads/' . $uniqueFilename;
         $sizeBytes = filesize($targetPath) ?: $file['size'];
@@ -237,9 +247,14 @@ final class MediaController extends AdminController
         $allowedMimes = [
             'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'application/pdf'
         ];
-        $targetDir = dirname(__DIR__, 3) . '/public/uploads';
+        $projectRoot = dirname(__DIR__, 3);
+        $targetDir = $projectRoot . '/uploads';
         if (!is_dir($targetDir)) {
-            @mkdir($targetDir, 0755, true);
+            @mkdir($targetDir, 0777, true);
+        }
+        $publicDir = $projectRoot . '/public/uploads';
+        if (!is_dir($publicDir)) {
+            @mkdir($publicDir, 0777, true);
         }
 
         $pdo = Database::connect();
@@ -248,34 +263,50 @@ final class MediaController extends AdminController
         $filesToProcess = [];
         if (!empty($_FILES['files']) && is_array($_FILES['files']['name'])) {
             foreach ($_FILES['files']['name'] as $idx => $name) {
-                if ($_FILES['files']['error'][$idx] === UPLOAD_ERR_OK) {
+                if (isset($_FILES['files']['error'][$idx]) && $_FILES['files']['error'][$idx] === UPLOAD_ERR_OK) {
                     $filesToProcess[] = [
                         'name' => $_FILES['files']['name'][$idx],
-                        'type' => $_FILES['files']['type'][$idx],
+                        'type' => $_FILES['files']['type'][$idx] ?? '',
                         'tmp_name' => $_FILES['files']['tmp_name'][$idx],
-                        'size' => $_FILES['files']['size'][$idx],
+                        'size' => $_FILES['files']['size'][$idx] ?? 0,
                     ];
                 }
             }
         } elseif (!empty($_FILES['file']) && is_array($_FILES['file']['name'])) {
             foreach ($_FILES['file']['name'] as $idx => $name) {
-                if ($_FILES['file']['error'][$idx] === UPLOAD_ERR_OK) {
+                if (isset($_FILES['file']['error'][$idx]) && $_FILES['file']['error'][$idx] === UPLOAD_ERR_OK) {
                     $filesToProcess[] = [
                         'name' => $_FILES['file']['name'][$idx],
-                        'type' => $_FILES['file']['type'][$idx],
+                        'type' => $_FILES['file']['type'][$idx] ?? '',
                         'tmp_name' => $_FILES['file']['tmp_name'][$idx],
-                        'size' => $_FILES['file']['size'][$idx],
+                        'size' => $_FILES['file']['size'][$idx] ?? 0,
                     ];
                 }
             }
-        } elseif (!empty($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+        } elseif (!empty($_FILES['file']) && isset($_FILES['file']['error']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
             $filesToProcess[] = $_FILES['file'];
-        } elseif (!empty($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+        } elseif (!empty($_FILES['image_file']) && isset($_FILES['image_file']['error']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
             $filesToProcess[] = $_FILES['image_file'];
         }
 
         if (empty($filesToProcess)) {
-            return Response::json(['success' => false, 'message' => 'No files were uploaded or an upload error occurred'], 400);
+            $errMsg = 'No files received by server or upload limit exceeded.';
+            if (!empty($_FILES)) {
+                foreach ($_FILES as $fk => $fv) {
+                    if (is_array($fv['error'])) {
+                        foreach ($fv['error'] as $singleErr) {
+                            if ($singleErr !== UPLOAD_ERR_OK && $singleErr !== UPLOAD_ERR_NO_FILE) {
+                                $errMsg = 'Upload error: ' . self::uploadErrorMessage($singleErr);
+                                break 2;
+                            }
+                        }
+                    } elseif ($fv['error'] !== UPLOAD_ERR_OK && $fv['error'] !== UPLOAD_ERR_NO_FILE) {
+                        $errMsg = 'Upload error: ' . self::uploadErrorMessage($fv['error']);
+                        break;
+                    }
+                }
+            }
+            return Response::json(['success' => false, 'message' => $errMsg], 400);
         }
 
         $uploadedUrls = [];
@@ -297,9 +328,14 @@ final class MediaController extends AdminController
             $uniqueFilename = $cleanBase . '_' . time() . '_' . mt_rand(100, 999) . '.' . $ext;
 
             $targetPath = $targetDir . '/' . $uniqueFilename;
-            if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            $moved = @move_uploaded_file($file['tmp_name'], $targetPath);
+            if (!$moved) {
+                $moved = @copy($file['tmp_name'], $targetPath);
+            }
+            if (!$moved) {
                 continue;
             }
+            @copy($targetPath, $publicDir . '/' . $uniqueFilename);
 
             $storagePath = '/uploads/' . $uniqueFilename;
             $sizeBytes = filesize($targetPath) ?: $file['size'];
@@ -365,5 +401,22 @@ final class MediaController extends AdminController
             'success' => true,
             'data' => $media,
         ]);
+    }
+
+    /**
+     * Map PHP upload error code to human readable string.
+     */
+    private static function uploadErrorMessage(int $code): string
+    {
+        return match ($code) {
+            UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive in php.ini.',
+            UPLOAD_ERR_FORM_SIZE => 'The uploaded file exceeds the MAX_FILE_SIZE directive in the HTML form.',
+            UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded.',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder on the server.',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
+            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload.',
+            default => 'Unknown upload error (code ' . $code . ').',
+        };
     }
 }

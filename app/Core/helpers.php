@@ -7,6 +7,9 @@ use Lilyweb\Core\Request;
 if (!function_exists('asset')) {
     function asset(string $path): string
     {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, 'data:')) {
+            return $path;
+        }
         $base = Request::basePath();
         $cleanPath = '/' . ltrim($path, '/');
         return ($base === '' || $base === '/') ? $cleanPath : $base . $cleanPath;
@@ -16,6 +19,9 @@ if (!function_exists('asset')) {
 if (!function_exists('url')) {
     function url(string $path = ''): string
     {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
         $base = Request::basePath();
         if ($path === '' || $path === '/') {
             return ($base === '' || $base === '/') ? '/' : $base . '/';

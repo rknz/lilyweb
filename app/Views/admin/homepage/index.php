@@ -572,18 +572,22 @@ use Lilyweb\Core\Security;
         <div class="hp-grid-2">
             <div class="hp-item-card">
                 <div class="hp-item-title">📞 Phone &amp; Direct Support</div>
-                <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.25rem;">
-                    <?= Security::e($contactSettings['contact_phone'] ?? '+880 1711-000000') ?>
+                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-heading); margin-bottom: 0.35rem;">
+                    <?= Security::e($contactSettings['phone_primary'] ?? $contactSettings['phone_number'] ?? '+88 01734182694') ?>
                 </div>
-                <div class="hp-item-desc">WhatsApp: <?= Security::e($contactSettings['contact_whatsapp'] ?? '+880 1711-000000') ?></div>
+                <div class="hp-item-desc" style="color: var(--text-main);">
+                    <strong>WhatsApp:</strong> <?= Security::e($contactSettings['whatsapp_number'] ?? '+88 01734182694') ?>
+                </div>
             </div>
 
             <div class="hp-item-card">
                 <div class="hp-item-title">📍 Official Office Address</div>
-                <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.25rem;">
-                    <?= Security::e($contactSettings['contact_address_en'] ?? 'Dhaka, Bangladesh') ?>
+                <div style="font-size: 0.92rem; font-weight: 800; color: var(--text-heading); margin-bottom: 0.35rem; line-height: 1.4;">
+                    <?= Security::e($contactSettings['address_en'] ?? $contactSettings['studio_address_en'] ?? '36, Bir Uttam C.R Dutta Road, Hatirpool, Dhaka') ?>
                 </div>
-                <div class="hp-item-desc">Email: <?= Security::e($contactSettings['contact_email'] ?? 'info@lilyinteriors.com') ?></div>
+                <div class="hp-item-desc" style="color: var(--text-main);">
+                    <strong>Email:</strong> <?= Security::e($contactSettings['email_primary'] ?? $contactSettings['email_address'] ?? 'lilyinteriorsbd@gmail.com') ?>
+                </div>
             </div>
         </div>
     </div>

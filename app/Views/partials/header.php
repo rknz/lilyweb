@@ -32,6 +32,9 @@ try {
 
 $phonePrimary = $settings['phone_primary'] ?? '+88 01734182694';
 $emailPrimary = $settings['email_primary'] ?? 'lilyinteriorsbd@gmail.com';
+$addressPrimary = $isBn 
+    ? ($settings['address_bn'] ?? '৩৬ বীর উত্তম সি.আর দত্ত রোড, হাতিরপুল, ঢাকা-১২০৫') 
+    : ($settings['address_en'] ?? '36 Bir Uttam C.R Dutta Road, Hatirpool, Dhaka-1205, Bangladesh');
 $waNumber = preg_replace('/[^0-9]/', '', $settings['whatsapp_number'] ?? '8801734182694');
 $fbUrl = $settings['social_facebook'] ?? 'https://www.facebook.com/LilyInteriorsbd/';
 $igUrl = $settings['social_instagram'] ?? 'https://www.instagram.com/lilyinteriors/';
@@ -79,9 +82,9 @@ $navLinks = [
                     <span class="icon-circle">&#9993;</span>
                     <span><?= View::e($emailPrimary) ?></span>
                 </a>
-                <span class="top-item top-location">
+                <span class="top-item top-location" title="<?= View::e($addressPrimary) ?>">
                     <span class="icon-circle">&#128205;</span>
-                    <span><?= $isBn ? 'হাতিরপুল, ঢাকা' : 'Hatirpool, Dhaka' ?></span>
+                    <span><?= View::e($addressPrimary) ?></span>
                 </span>
             </div>
 

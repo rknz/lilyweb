@@ -74,7 +74,7 @@ final class HomepageController extends AdminController
         $testimonials = $testStmt->fetchAll(PDO::FETCH_ASSOC);
 
         // 8. Contact & Site Settings
-        $contactStmt = $pdo->query("SELECT `setting_key`, `setting_value` FROM `lilyweb_site_settings` WHERE `setting_key` LIKE 'contact_%' OR `setting_key` LIKE 'site_%'");
+        $contactStmt = $pdo->query("SELECT `setting_key`, `setting_value` FROM `lilyweb_site_settings`");
         $rawContact = $contactStmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
         $content = View::make('admin.homepage.index', [

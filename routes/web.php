@@ -159,11 +159,17 @@ Router::post('/admin/media/delete', [MediaController::class, 'delete']);
 
 // Contact Submissions & Lead Inquiries Module
 use Lilyweb\App\Controllers\Admin\ContactController as AdminContactController;
+use Lilyweb\App\Controllers\Admin\NotificationController as AdminNotificationController;
 Router::get('/admin/contacts', [AdminContactController::class, 'index']);
 Router::get('/admin/contacts/export', [AdminContactController::class, 'export']);
 Router::get('/admin/contacts/{id}', [AdminContactController::class, 'show']);
 Router::post('/admin/contacts/status', [AdminContactController::class, 'updateStatus']);
 Router::post('/admin/contacts/delete', [AdminContactController::class, 'delete']);
+
+// Admin Real-time Notifications Module
+Router::get('/admin/notifications/api', [AdminNotificationController::class, 'api']);
+Router::post('/admin/notifications/mark-all-read', [AdminNotificationController::class, 'markAllRead']);
+Router::post('/admin/notifications/mark-read', [AdminNotificationController::class, 'markRead']);
 
 // Dynamic XML Sitemap & Robots.txt for Google & AI Web Crawlers
 use Lilyweb\App\Controllers\SitemapController;

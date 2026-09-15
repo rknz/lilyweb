@@ -8,6 +8,15 @@ $currentPath = \Lilyweb\Core\Request::path();
 $flashSuccess = Session::getFlash('success');
 $flashError = Session::getFlash('error');
 Session::flush();
+
+$notifUnreadCount = 0;
+try {
+    $notifPdo = \Lilyweb\Core\Database::connect();
+    $notifStmt = $notifPdo->query("SELECT COUNT(*) FROM `lilyweb_contact_submissions` WHERE `status` = 'new'");
+    $notifUnreadCount = (int) $notifStmt->fetchColumn();
+} catch (\Throwable $e) {
+    $notifUnreadCount = 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -423,6 +432,11 @@ Session::flush();
         [data-theme="dark"] .theme-icon-moon { display: inline-block; }
         [data-theme="dark"] .theme-icon-sun { display: none; }
 
+        /* Notifications Bell & Dropdown Panel */
+        .notification-wrapper {
+            position: relative;
+        }
+
         .btn-notification-bell {
             position: relative;
             background: var(--bg-card);
@@ -436,11 +450,14 @@ Session::flush();
             cursor: pointer;
             transition: var(--transition-smooth);
             text-decoration: none;
+            padding: 0;
         }
 
-        .btn-notification-bell:hover {
+        .btn-notification-bell:hover,
+        .btn-notification-bell.is-active {
             border-color: var(--crimson);
             color: var(--crimson);
+            box-shadow: 0 0 14px var(--crimson-glow);
         }
 
         .bell-badge-count {
@@ -449,14 +466,366 @@ Session::flush();
             right: -4px;
             background: var(--crimson);
             color: #FFFFFF;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 800;
-            width: 18px;
+            min-width: 18px;
             height: 18px;
-            border-radius: 50%;
+            padding: 0 4px;
+            border-radius: var(--radius-full);
             display: grid;
             place-items: center;
             border: 2px solid var(--bg-topbar);
+            box-shadow: 0 2px 6px rgba(200, 16, 46, 0.4);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .bell-badge-count.is-hidden {
+            display: none !important;
+        }
+
+        .notification-dropdown-menu {
+            position: absolute;
+            right: -30px;
+            top: calc(100% + 10px);
+            width: 385px;
+            max-width: calc(100vw - 30px);
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            z-index: 1000;
+            overflow: hidden;
+            animation: notifSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes notifSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .notif-dropdown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
+        }
+
+        .notif-header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .notif-header-text {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-heading);
+            letter-spacing: -0.2px;
+        }
+
+        .notif-header-badge {
+            background: rgba(200, 16, 46, 0.15);
+            color: var(--crimson);
+            border: 1px solid rgba(200, 16, 46, 0.3);
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 0.15rem 0.5rem;
+            border-radius: var(--radius-full);
+        }
+
+        .notif-header-badge.is-hidden {
+            display: none !important;
+        }
+
+        .notif-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn-notif-action {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition-fast);
+        }
+
+        .btn-notif-action:hover {
+            color: var(--crimson);
+            background: rgba(200, 16, 46, 0.08);
+            border-color: rgba(200, 16, 46, 0.2);
+        }
+
+        .btn-notif-refresh {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            padding: 0;
+        }
+
+        .btn-notif-refresh:hover {
+            color: var(--text-heading);
+            border-color: var(--text-muted);
+            transform: rotate(45deg);
+        }
+
+        .notif-tabs-nav {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
+            padding: 0 0.5rem;
+        }
+
+        .notif-tab-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.55rem 0.5rem;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .notif-tab-btn:hover {
+            color: var(--text-heading);
+        }
+
+        .notif-tab-btn.is-active {
+            color: var(--crimson);
+            border-bottom-color: var(--crimson);
+        }
+
+        .notif-tab-badge {
+            background: var(--crimson);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 0.05rem 0.35rem;
+            border-radius: var(--radius-full);
+            line-height: 1;
+        }
+
+        .notif-dropdown-body {
+            max-height: 350px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .notif-dropdown-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .notif-dropdown-body::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition-fast);
+            position: relative;
+            background: var(--bg-card);
+            cursor: pointer;
+        }
+
+        .notif-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .notif-item.is-unread {
+            background: rgba(200, 16, 46, 0.05);
+            border-left: 3px solid var(--crimson);
+        }
+
+        .notif-item.is-unread:hover {
+            background: rgba(200, 16, 46, 0.09);
+        }
+
+        .notif-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(200, 16, 46, 0.2), rgba(200, 16, 46, 0.4));
+            border: 1.5px solid rgba(200, 16, 46, 0.3);
+            color: var(--crimson);
+            font-weight: 800;
+            font-size: 0.82rem;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .notif-avatar.is-activity {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.4));
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #3B82F6;
+        }
+
+        .notif-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notif-content-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.4rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .notif-name {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--text-heading);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notif-time {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .notif-service-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--crimson);
+            margin-bottom: 0.2rem;
+        }
+
+        .notif-snippet {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .notif-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .notif-meta-phone {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 600;
+        }
+
+        .notif-status-pill {
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 0.08rem 0.4rem;
+            border-radius: var(--radius-full);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .notif-status-pill.status-new {
+            background: rgba(200, 16, 46, 0.15);
+            color: var(--crimson);
+            border: 1px solid rgba(200, 16, 46, 0.3);
+        }
+
+        .notif-status-pill.status-contacted {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22C55E;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .notif-empty-state {
+            padding: 2.5rem 1.25rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .notif-empty-icon {
+            font-size: 2rem;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+
+        .notif-empty-text {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 0.2rem;
+        }
+
+        .notif-empty-sub {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+        }
+
+        .notif-dropdown-footer {
+            padding: 0.65rem 1rem;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .notif-footer-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--crimson);
+            text-decoration: none;
+            transition: var(--transition-fast);
+        }
+
+        .notif-footer-link:hover {
+            color: var(--crimson-hover);
+            text-decoration: underline;
         }
 
         .topbar-user-pill {
@@ -1022,8 +1391,8 @@ Session::flush();
         }
         .gallery-grid-preview {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1.15rem;
             margin-top: 1.25rem;
         }
         .gallery-item-card {
@@ -1033,37 +1402,105 @@ Session::flush();
             overflow: hidden;
             position: relative;
             box-shadow: var(--card-shadow);
-            transition: var(--transition-smooth);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
             display: flex;
             flex-direction: column;
+            cursor: grab;
+            user-select: none;
+        }
+        .gallery-item-card:active {
+            cursor: grabbing;
         }
         .gallery-item-card:hover {
             border-color: var(--crimson);
             transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        }
+        .gallery-item-card.is-dragging {
+            opacity: 0.35;
+            transform: scale(0.95);
+            border-style: dashed;
+            border-color: var(--crimson);
+        }
+        .gallery-item-card.is-dragover {
+            border-color: var(--crimson) !important;
+            box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.45) !important;
+            transform: scale(1.04);
+            background: rgba(200, 16, 46, 0.08);
+        }
+        .gallery-card-badge {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(15, 23, 42, 0.88);
+            color: #FFFFFF;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 0.2rem 0.48rem;
+            border-radius: var(--radius-sm);
+            backdrop-filter: blur(4px);
+            z-index: 5;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            letter-spacing: 0.02em;
+        }
+        .gallery-card-badge.is-cover {
+            background: var(--crimson);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 2px 6px rgba(200, 16, 46, 0.5);
         }
         .gallery-item-thumb {
             width: 100%;
-            height: 95px;
+            height: 105px;
             object-fit: cover;
-            background: #000;
+            background: #0B0F19;
             display: block;
+            pointer-events: none;
         }
         .gallery-item-info {
-            padding: 0.4rem 0.5rem;
+            padding: 0.45rem 0.55rem;
             font-size: 0.72rem;
             color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             display: flex;
             align-items: center;
             justify-content: space-between;
             background: var(--bg-card-alt);
+            border-top: 1px solid var(--border-subtle);
+            gap: 0.35rem;
         }
-        .gallery-item-idx {
+        .gallery-item-filename {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            font-weight: 600;
+        }
+        .gallery-item-arrows {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .btn-gallery-move {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-heading);
+            width: 22px;
+            height: 22px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
             font-weight: 800;
-            color: var(--crimson);
+            line-height: 1;
+            transition: var(--transition-smooth);
+            padding: 0;
+        }
+        .btn-gallery-move:hover {
+            border-color: var(--crimson);
+            background: var(--crimson);
+            color: #FFFFFF;
         }
         .gallery-item-del-btn {
             position: absolute;
@@ -1079,10 +1516,11 @@ Session::flush();
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 800;
             box-shadow: 0 2px 6px rgba(0,0,0,0.4);
             transition: var(--transition-smooth);
+            z-index: 6;
         }
         .gallery-item-del-btn:hover {
             background: #DC2626;
@@ -1099,6 +1537,45 @@ Session::flush();
             border-radius: 9999px;
             font-size: 0.78rem;
             font-weight: 800;
+        }
+
+        /* ========================================================
+           ADMIN FOOTER STRIP
+           ======================================================== */
+        .admin-footer-strip {
+            margin-top: auto;
+            padding: 1.25rem 2.4rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.84rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.03);
+            transition: var(--transition-smooth);
+            z-index: 10;
+        }
+
+        .admin-footer-strip div {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .admin-footer-strip {
+                padding: 1rem 1.25rem;
+                flex-direction: column;
+                text-align: center;
+                gap: 0.4rem;
+                justify-content: center;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -1236,10 +1713,55 @@ Session::flush();
                     <span id="theme-text">Light Mode</span>
                 </button>
 
-                <a href="/admin/contacts" class="btn-notification-bell" title="Notifications">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                    <span class="bell-badge-count">3</span>
-                </a>
+                <!-- Interactive Real-time Notifications Bell & Dropdown -->
+                <div class="notification-wrapper">
+                    <button type="button" id="notification-bell-btn" class="btn-notification-bell" title="Client Inquiries & System Notifications" aria-label="Notifications" aria-expanded="false">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span id="bell-badge-count" class="bell-badge-count <?= $notifUnreadCount > 0 ? '' : 'is-hidden' ?>"><?= $notifUnreadCount > 99 ? '99+' : $notifUnreadCount ?></span>
+                    </button>
+
+                    <div id="notification-dropdown-menu" class="notification-dropdown-menu" style="display: none;">
+                        <div class="notif-dropdown-header">
+                            <div class="notif-header-title">
+                                <span class="notif-header-text">🔔 Notifications</span>
+                                <span id="notif-header-badge" class="notif-header-badge <?= $notifUnreadCount > 0 ? '' : 'is-hidden' ?>">
+                                    <span id="notif-unread-num"><?= $notifUnreadCount ?></span> New Leads
+                                </span>
+                            </div>
+                            <div class="notif-header-actions">
+                                <button type="button" id="btn-notif-mark-all" class="btn-notif-action" title="Mark all inquiries as reviewed">
+                                    ✓ Mark all read
+                                </button>
+                                <button type="button" id="btn-notif-refresh" class="btn-notif-refresh" title="Refresh Notifications">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="notif-tabs-nav">
+                            <button type="button" class="notif-tab-btn is-active" data-tab="inquiries">
+                                <span>📩 Inquiries &amp; Leads</span>
+                                <span class="notif-tab-badge <?= $notifUnreadCount > 0 ? '' : 'is-hidden' ?>" id="tab-inquiries-count"><?= $notifUnreadCount ?></span>
+                            </button>
+                            <button type="button" class="notif-tab-btn" data-tab="activity">
+                                <span>⚡ System Activity</span>
+                            </button>
+                        </div>
+
+                        <div class="notif-dropdown-body" id="notif-dropdown-body">
+                            <div class="notif-empty-state" style="padding: 2.2rem 1rem;">
+                                <div class="notif-empty-text">⏳ Loading notifications...</div>
+                            </div>
+                        </div>
+
+                        <div class="notif-dropdown-footer">
+                            <a href="<?= url('/admin/contacts') ?>" class="notif-footer-link">
+                                <span>View All Inquiries &amp; Consultation Leads</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Topbar User Pill with Quick Logout -->
                 <div style="position: relative;">
@@ -1293,6 +1815,21 @@ Session::flush();
 
     <!-- Theme & Universal Media Picker Scripts -->
     <script>
+        window.APP_BASE_URL = '<?= \Lilyweb\Core\Request::basePath() ?>';
+        window.ADMIN_BASE_URL = window.APP_BASE_URL + '/admin';
+
+        window.resolveMediaUrl = function(url) {
+            if (!url) return '';
+            if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0 || url.indexOf('data:') === 0 || url.indexOf('blob:') === 0) {
+                return url;
+            }
+            var cleanUrl = url.indexOf('/') === 0 ? url : '/' + url;
+            if (window.APP_BASE_URL && cleanUrl.indexOf(window.APP_BASE_URL + '/') !== 0 && cleanUrl !== window.APP_BASE_URL) {
+                return window.APP_BASE_URL + cleanUrl;
+            }
+            return cleanUrl;
+        };
+
         (function() {
             var themeBtn = document.getElementById('theme-toggle-btn');
             var themeText = document.getElementById('theme-text');
@@ -1350,7 +1887,7 @@ Session::flush();
             function loadMediaList() {
                 if (!pickerGrid) return;
                 pickerGrid.innerHTML = '<p style="color: var(--text-muted); font-size: 0.86rem;">Loading images...</p>';
-                fetch('/admin/media/picker-list')
+                fetch(window.ADMIN_BASE_URL + '/media/picker-list')
                     .then(function(res) { return res.json(); })
                     .then(function(res) {
                         if (res.success && Array.isArray(res.data)) {
@@ -1360,7 +1897,8 @@ Session::flush();
                             pickerGrid.innerHTML = '<p style="color: #EF4444;">Could not load media library.</p>';
                         }
                     })
-                    .catch(function() {
+                    .catch(function(err) {
+                        console.error('Media picker load error:', err);
                         pickerGrid.innerHTML = '<p style="color: #EF4444;">Error fetching media items.</p>';
                     });
             }
@@ -1382,8 +1920,9 @@ Session::flush();
                 }
                 pickerGrid.innerHTML = items.map(function(m) {
                     var isSelected = isMultiMode && selectedMultiUrls.indexOf(m.storage_path) !== -1;
+                    var resolvedSrc = window.resolveMediaUrl(m.storage_path);
                     return '<div class="picker-item ' + (isSelected ? 'is-selected' : '') + '" data-url="' + m.storage_path + '" data-name="' + m.filename + '">' +
-                        '<img src="' + m.storage_path + '" alt="' + (m.alt_en || '') + '">' +
+                        '<img src="' + resolvedSrc + '" alt="' + (m.alt_en || '') + '">' +
                         '<div class="picker-item-name">' + m.filename + '</div>' +
                     '</div>';
                 }).join('');
@@ -1406,7 +1945,8 @@ Session::flush();
                             if (activeTargetInput) {
                                 activeTargetInput.value = url;
                                 if (activePreviewContainer) {
-                                    activePreviewContainer.innerHTML = '<img src="' + url + '" class="media-preview-thumb"><div class="media-preview-meta"><div class="media-preview-url">' + url + '</div></div><button type="button" class="btn-media-remove">Remove</button>';
+                                    var resolvedSrc = window.resolveMediaUrl(url);
+                                    activePreviewContainer.innerHTML = '<img src="' + resolvedSrc + '" class="media-preview-thumb"><div class="media-preview-meta"><div class="media-preview-url">' + url + '</div></div><button type="button" class="btn-media-remove">Remove</button>';
                                     bindRemoveBtn(activePreviewContainer, activeTargetInput);
                                 }
                             }
@@ -1531,7 +2071,7 @@ Session::flush();
                             uploadBtn.innerHTML = '⏳ Uploading...';
                             uploadBtn.disabled = true;
 
-                            fetch('/admin/media/quick-upload', {
+                            fetch(window.ADMIN_BASE_URL + '/media/quick-upload', {
                                 method: 'POST',
                                 body: formData
                             })
@@ -1541,16 +2081,18 @@ Session::flush();
                                 uploadBtn.disabled = false;
                                 if (res.success && res.url) {
                                     targetInput.value = res.url;
-                                    previewContainer.innerHTML = '<img src="' + res.url + '" class="media-preview-thumb"><div class="media-preview-meta"><div class="media-preview-url">' + res.url + '</div><span class="badge badge-success" style="font-size: 0.68rem; color: #15803D;">✓ Uploaded Now</span></div><button type="button" class="btn-media-remove">Remove</button>';
+                                    var resolvedSrc = window.resolveMediaUrl(res.url);
+                                    previewContainer.innerHTML = '<img src="' + resolvedSrc + '" class="media-preview-thumb"><div class="media-preview-meta"><div class="media-preview-url">' + res.url + '</div><span class="badge badge-success" style="font-size: 0.68rem; color: #15803D;">✓ Uploaded Now</span></div><button type="button" class="btn-media-remove">Remove</button>';
                                     bindRemoveBtn(previewContainer, targetInput);
                                 } else {
                                     alert(res.message || 'Upload failed');
                                 }
                             })
-                            .catch(function() {
+                            .catch(function(err) {
+                                console.error('Upload error:', err);
                                 uploadBtn.innerHTML = '📤 Upload Photo Directly';
                                 uploadBtn.disabled = false;
-                                alert('Error during file upload.');
+                                alert('Error during file upload: ' + (err.message || 'Network/Server Error'));
                             });
                         });
                     }
@@ -1562,7 +2104,7 @@ Session::flush();
             };
 
             // ========================================================
-            // PROJECT MULTI-IMAGE GALLERY MANAGER
+            // PROJECT MULTI-IMAGE GALLERY MANAGER WITH DRAG & DROP REORDERING
             // ========================================================
             window.initGalleryManagers = function() {
                 var galleryBoxes = document.querySelectorAll('.gallery-manager-box');
@@ -1599,20 +2141,28 @@ Session::flush();
                     function renderGrid() {
                         if (!gridContainer) return;
                         if (galleryImages.length === 0) {
-                            gridContainer.innerHTML = '<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.88rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">' +
-                                '📸 No gallery photos added yet. Click <strong>Upload Multiple Photos</strong> or <strong>Choose from Media Library</strong> above.' +
+                            gridContainer.innerHTML = '<div style="grid-column: 1 / -1; padding: 2.5rem 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1.5px dashed var(--border-color);">' +
+                                '📸 <strong>No gallery photos added yet.</strong><br><span style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.35rem; display: inline-block;">Click <strong>Upload Multiple Photos Directly</strong> or <strong>Choose Multiple from Media Library</strong> above to populate the interactive project slider.</span>' +
                             '</div>';
                             return;
                         }
 
                         gridContainer.innerHTML = galleryImages.map(function(url, idx) {
                             var filename = url.split('/').pop();
-                            return '<div class="gallery-item-card" data-idx="' + idx + '">' +
+                            var isCover = idx === 0;
+                            var badgeLabel = isCover ? '★ #1 Slider Cover' : '#' + (idx + 1);
+                            var resolvedSrc = window.resolveMediaUrl(url);
+
+                            return '<div class="gallery-item-card" draggable="true" data-idx="' + idx + '" title="Drag to reorder photos for project slider">' +
+                                '<div class="gallery-card-badge ' + (isCover ? 'is-cover' : '') + '">' + badgeLabel + '</div>' +
                                 '<button type="button" class="gallery-item-del-btn" data-del-idx="' + idx + '" title="Remove from gallery">&times;</button>' +
-                                '<img src="' + url + '" class="gallery-item-thumb" alt="Gallery Photo ' + (idx + 1) + '">' +
+                                '<img src="' + resolvedSrc + '" class="gallery-item-thumb" alt="Gallery Photo ' + (idx + 1) + '" onerror="this.src=\'' + window.resolveMediaUrl('/assets/img/project-1.jpg') + '\'">' +
                                 '<div class="gallery-item-info">' +
-                                    '<span class="gallery-item-idx">#' + (idx + 1) + '</span>' +
-                                    '<span title="' + url + '">' + filename + '</span>' +
+                                    '<span class="gallery-item-filename" title="' + url + '">' + filename + '</span>' +
+                                    '<div class="gallery-item-arrows">' +
+                                        (idx > 0 ? '<button type="button" class="btn-gallery-move" data-move-from="' + idx + '" data-move-to="' + (idx - 1) + '" title="Move Left / Earlier">&larr;</button>' : '') +
+                                        (idx < galleryImages.length - 1 ? '<button type="button" class="btn-gallery-move" data-move-from="' + idx + '" data-move-to="' + (idx + 1) + '" title="Move Right / Later">&rarr;</button>' : '') +
+                                    '</div>' +
                                 '</div>' +
                             '</div>';
                         }).join('');
@@ -1624,6 +2174,61 @@ Session::flush();
                                 var delIdx = parseInt(this.getAttribute('data-del-idx'), 10);
                                 if (!isNaN(delIdx) && delIdx >= 0 && delIdx < galleryImages.length) {
                                     galleryImages.splice(delIdx, 1);
+                                    syncData();
+                                }
+                            });
+                        });
+
+                        // Bind move arrows
+                        gridContainer.querySelectorAll('.btn-gallery-move').forEach(function(btn) {
+                            btn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                var fromIdx = parseInt(this.getAttribute('data-move-from'), 10);
+                                var toIdx = parseInt(this.getAttribute('data-move-to'), 10);
+                                if (!isNaN(fromIdx) && !isNaN(toIdx) && fromIdx >= 0 && fromIdx < galleryImages.length && toIdx >= 0 && toIdx < galleryImages.length) {
+                                    var item = galleryImages.splice(fromIdx, 1)[0];
+                                    galleryImages.splice(toIdx, 0, item);
+                                    syncData();
+                                }
+                            });
+                        });
+
+                        // Bind HTML5 Drag & Drop for reordering
+                        var draggedCardIdx = null;
+                        gridContainer.querySelectorAll('.gallery-item-card').forEach(function(card) {
+                            card.addEventListener('dragstart', function(e) {
+                                draggedCardIdx = parseInt(this.getAttribute('data-idx'), 10);
+                                this.classList.add('is-dragging');
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.dataTransfer.setData('text/plain', String(draggedCardIdx));
+                            });
+
+                            card.addEventListener('dragend', function() {
+                                this.classList.remove('is-dragging');
+                                gridContainer.querySelectorAll('.gallery-item-card').forEach(function(c) {
+                                    c.classList.remove('is-dragover');
+                                });
+                            });
+
+                            card.addEventListener('dragover', function(e) {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = 'move';
+                                this.classList.add('is-dragover');
+                            });
+
+                            card.addEventListener('dragleave', function() {
+                                this.classList.remove('is-dragover');
+                            });
+
+                            card.addEventListener('drop', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                this.classList.remove('is-dragover');
+                                var targetIdx = parseInt(this.getAttribute('data-idx'), 10);
+                                if (draggedCardIdx !== null && draggedCardIdx !== targetIdx && !isNaN(draggedCardIdx) && !isNaN(targetIdx)) {
+                                    var movedItem = galleryImages.splice(draggedCardIdx, 1)[0];
+                                    galleryImages.splice(targetIdx, 0, movedItem);
+                                    draggedCardIdx = null;
                                     syncData();
                                 }
                             });
@@ -1663,7 +2268,7 @@ Session::flush();
                             uploadBtn.innerHTML = '⏳ Uploading ' + this.files.length + ' photo(s)...';
                             uploadBtn.disabled = true;
 
-                            fetch('/admin/media/quick-upload', {
+                            fetch(window.ADMIN_BASE_URL + '/media/quick-upload', {
                                 method: 'POST',
                                 body: formData
                             })
@@ -1687,10 +2292,11 @@ Session::flush();
                                     alert(res.message || 'Upload failed');
                                 }
                             })
-                            .catch(function() {
+                            .catch(function(err) {
+                                console.error('Gallery upload error:', err);
                                 uploadBtn.innerHTML = origText;
                                 uploadBtn.disabled = false;
-                                alert('Error uploading gallery photos.');
+                                alert('Error uploading gallery photos: ' + (err.message || 'Network/Server Error'));
                             });
 
                             // reset file input
@@ -1709,6 +2315,11 @@ Session::flush();
             if (userMenuBtn && userDropdownMenu) {
                 userMenuBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
+                    var notifDropdown = document.getElementById('notification-dropdown-menu');
+                    var bellBtn = document.getElementById('notification-bell-btn');
+                    if (notifDropdown) notifDropdown.style.display = 'none';
+                    if (bellBtn) bellBtn.classList.remove('is-active');
+
                     var isShown = userDropdownMenu.style.display === 'block';
                     userDropdownMenu.style.display = isShown ? 'none' : 'block';
                 });
@@ -1720,12 +2331,276 @@ Session::flush();
                 });
             }
 
+            // ========================================================
+            // REAL-TIME NOTIFICATIONS CENTER & LIVE INQUIRY FEED
+            // ========================================================
+            function initNotificationCenter() {
+                var bellBtn = document.getElementById('notification-bell-btn');
+                var notifDropdown = document.getElementById('notification-dropdown-menu');
+                var badgeCount = document.getElementById('bell-badge-count');
+                var headerBadge = document.getElementById('notif-header-badge');
+                var unreadNum = document.getElementById('notif-unread-num');
+                var tabInquiriesCount = document.getElementById('tab-inquiries-count');
+                var notifBody = document.getElementById('notif-dropdown-body');
+                var markAllBtn = document.getElementById('btn-notif-mark-all');
+                var refreshBtn = document.getElementById('btn-notif-refresh');
+                var tabBtns = document.querySelectorAll('.notif-tab-btn');
+
+                if (!bellBtn || !notifDropdown) return;
+
+                var currentTab = 'inquiries';
+                var notifData = { unread_count: 0, inquiries: [], activities: [] };
+                var isFetching = false;
+
+                function updateBadge(count) {
+                    var n = parseInt(count, 10) || 0;
+                    if (badgeCount) {
+                        badgeCount.textContent = n > 99 ? '99+' : n;
+                        if (n > 0) {
+                            badgeCount.classList.remove('is-hidden');
+                        } else {
+                            badgeCount.classList.add('is-hidden');
+                        }
+                    }
+                    if (unreadNum) unreadNum.textContent = n;
+                    if (tabInquiriesCount) {
+                        tabInquiriesCount.textContent = n;
+                        if (n > 0) {
+                            tabInquiriesCount.classList.remove('is-hidden');
+                        } else {
+                            tabInquiriesCount.classList.add('is-hidden');
+                        }
+                    }
+                    if (headerBadge) {
+                        if (n > 0) {
+                            headerBadge.classList.remove('is-hidden');
+                        } else {
+                            headerBadge.classList.add('is-hidden');
+                        }
+                    }
+                }
+
+                function escapeHtml(str) {
+                    if (!str) return '';
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                }
+
+                function renderContent() {
+                    if (!notifBody) return;
+
+                    if (currentTab === 'inquiries') {
+                        if (!notifData.inquiries || notifData.inquiries.length === 0) {
+                            notifBody.innerHTML = '<div class="notif-empty-state">' +
+                                '<span class="notif-empty-icon">🎉</span>' +
+                                '<div class="notif-empty-text">No consultation inquiries yet</div>' +
+                                '<div class="notif-empty-sub">When prospective clients request consultations from the website, they will appear here in real-time.</div>' +
+                            '</div>';
+                            return;
+                        }
+
+                        var html = notifData.inquiries.map(function(item) {
+                            var initial = item.full_name ? item.full_name.charAt(0).toUpperCase() : 'C';
+                            var unreadClass = item.is_new ? 'is-unread' : '';
+                            var statusBadge = item.is_new
+                                ? '<span class="notif-status-pill status-new">NEW</span>'
+                                : '<span class="notif-status-pill status-contacted">REVIEWED</span>';
+                            var detailUrl = window.resolveMediaUrl(item.url);
+
+                            return '<a href="' + detailUrl + '" class="notif-item ' + unreadClass + '" data-lead-id="' + item.id + '" data-is-new="' + (item.is_new ? '1' : '0') + '">' +
+                                '<div class="notif-avatar">' + initial + '</div>' +
+                                '<div class="notif-content">' +
+                                    '<div class="notif-content-top">' +
+                                        '<span class="notif-name">' + escapeHtml(item.full_name) + '</span>' +
+                                        '<span class="notif-time">' + escapeHtml(item.time_ago) + '</span>' +
+                                    '</div>' +
+                                    '<div class="notif-service-tag">✨ ' + escapeHtml(item.service) + '</div>' +
+                                    (item.message_snippet ? '<div class="notif-snippet">"' + escapeHtml(item.message_snippet) + '"</div>' : '') +
+                                    '<div class="notif-meta-row">' +
+                                        '<span class="notif-meta-phone">📞 ' + escapeHtml(item.phone || 'N/A') + '</span>' +
+                                        statusBadge +
+                                    '</div>' +
+                                '</div>' +
+                            '</a>';
+                        }).join('');
+
+                        notifBody.innerHTML = html;
+
+                        // Click handling for single unread item to mark as read
+                        notifBody.querySelectorAll('.notif-item').forEach(function(el) {
+                            el.addEventListener('click', function() {
+                                var leadId = this.getAttribute('data-lead-id');
+                                var isNew = this.getAttribute('data-is-new') === '1';
+                                if (isNew && leadId) {
+                                    var fd = new FormData();
+                                    fd.append('id', leadId);
+                                    fetch(window.ADMIN_BASE_URL + '/notifications/mark-read', {
+                                        method: 'POST',
+                                        body: fd
+                                    }).catch(function(){});
+                                }
+                            });
+                        });
+                    } else {
+                        // System Activity Tab
+                        if (!notifData.activities || notifData.activities.length === 0) {
+                            notifBody.innerHTML = '<div class="notif-empty-state">' +
+                                '<span class="notif-empty-icon">⚡</span>' +
+                                '<div class="notif-empty-text">No recent system activity</div>' +
+                                '<div class="notif-empty-sub">Recent CMS admin changes and updates will be logged here.</div>' +
+                            '</div>';
+                            return;
+                        }
+
+                        var actHtml = notifData.activities.map(function(act) {
+                            var icon = '⚡';
+                            if (act.action === 'update') icon = '✏️';
+                            else if (act.action === 'delete') icon = '🗑️';
+                            else if (act.action === 'duplicate') icon = '📄';
+                            else if (act.action === 'login') icon = '🔑';
+
+                            return '<div class="notif-item" style="cursor: default;">' +
+                                '<div class="notif-avatar is-activity">' + icon + '</div>' +
+                                '<div class="notif-content">' +
+                                    '<div class="notif-content-top">' +
+                                        '<span class="notif-name" style="font-size: 0.8rem;">' + escapeHtml(act.description) + '</span>' +
+                                        '<span class="notif-time">' + escapeHtml(act.time_ago) + '</span>' +
+                                    '</div>' +
+                                    '<div class="notif-meta-row" style="margin-top: 0.25rem;">' +
+                                        '<span style="font-size: 0.68rem; color: var(--text-muted);">By: ' + escapeHtml(act.username) + '</span>' +
+                                        '<span class="notif-status-pill status-contacted">LOGGED</span>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>';
+                        }).join('');
+
+                        notifBody.innerHTML = actHtml;
+                    }
+                }
+
+                function fetchNotifications(showLoading) {
+                    if (isFetching) return;
+                    isFetching = true;
+                    if (showLoading && notifBody) {
+                        notifBody.innerHTML = '<div class="notif-empty-state" style="padding: 2.2rem 1rem;">' +
+                            '<div class="notif-empty-text">⏳ Loading real-time notifications...</div>' +
+                        '</div>';
+                    }
+
+                    fetch(window.ADMIN_BASE_URL + '/notifications/api')
+                        .then(function(r) { return r.json(); })
+                        .then(function(res) {
+                            isFetching = false;
+                            if (res.success) {
+                                notifData = res;
+                                updateBadge(res.unread_count);
+                                renderContent();
+                            }
+                        })
+                        .catch(function(err) {
+                            isFetching = false;
+                            console.error('Notification fetch error:', err);
+                        });
+                }
+
+                // Bell Button Click (Toggle Dropdown)
+                bellBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var isShown = notifDropdown.style.display === 'block';
+                    if (isShown) {
+                        notifDropdown.style.display = 'none';
+                        bellBtn.classList.remove('is-active');
+                    } else {
+                        // Close user menu if open
+                        var userMenu = document.getElementById('user-dropdown-menu');
+                        if (userMenu) userMenu.style.display = 'none';
+
+                        notifDropdown.style.display = 'block';
+                        bellBtn.classList.add('is-active');
+                        fetchNotifications(notifData.inquiries.length === 0);
+                    }
+                });
+
+                // Tab Buttons Switching
+                tabBtns.forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        tabBtns.forEach(function(b) { b.classList.remove('is-active'); });
+                        this.classList.add('is-active');
+                        currentTab = this.getAttribute('data-tab') || 'inquiries';
+                        renderContent();
+                    });
+                });
+
+                // Mark All Read Button
+                if (markAllBtn) {
+                    markAllBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        var orig = this.innerHTML;
+                        this.innerHTML = '⏳ Updating...';
+                        this.disabled = true;
+
+                        fetch(window.ADMIN_BASE_URL + '/notifications/mark-all-read', {
+                            method: 'POST'
+                        })
+                        .then(function(r) { return r.json(); })
+                        .then(function(res) {
+                            markAllBtn.innerHTML = orig;
+                            markAllBtn.disabled = false;
+                            if (res.success) {
+                                updateBadge(0);
+                                if (notifData.inquiries) {
+                                    notifData.inquiries.forEach(function(inq) {
+                                        inq.is_new = false;
+                                        inq.status = 'contacted';
+                                    });
+                                }
+                                renderContent();
+                            }
+                        })
+                        .catch(function(err) {
+                            markAllBtn.innerHTML = orig;
+                            markAllBtn.disabled = false;
+                            console.error('Mark all read error:', err);
+                        });
+                    });
+                }
+
+                // Refresh Button
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        fetchNotifications(true);
+                    });
+                }
+
+                // Close on click outside
+                document.addEventListener('click', function(e) {
+                    if (!notifDropdown.contains(e.target) && e.target !== bellBtn && !bellBtn.contains(e.target)) {
+                        notifDropdown.style.display = 'none';
+                        bellBtn.classList.remove('is-active');
+                    }
+                });
+
+                // Initial fetch & Polling every 45 seconds
+                fetchNotifications(false);
+                setInterval(function() {
+                    fetchNotifications(false);
+                }, 45000);
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
                 window.initMediaUploaders();
                 window.initGalleryManagers();
+                initNotificationCenter();
             });
             window.initMediaUploaders();
             window.initGalleryManagers();
+            initNotificationCenter();
         })();
     </script>
 </body>

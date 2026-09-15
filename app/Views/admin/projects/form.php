@@ -240,7 +240,7 @@ if (empty($galleryJson) || $galleryJson === 'null') {
 
             <div class="media-preview-container">
                 <?php if (!empty($project['cover_image'])): ?>
-                    <img src="<?= Security::e($project['cover_image']) ?>" alt="" class="media-preview-thumb">
+                    <img src="<?= asset($project['cover_image']) ?>" alt="" class="media-preview-thumb">
                     <div class="media-preview-meta">
                         <div class="media-preview-url"><?= Security::e($project['cover_image']) ?></div>
                     </div>
@@ -322,29 +322,32 @@ if (empty($galleryJson) || $galleryJson === 'null') {
     </div>
 
     <!-- Publishing & Visibility Options -->
-    <div class="admin-card" style="margin-top: 1.5rem;">
-        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-heading); margin-bottom: 1rem;">🌐 Publishing &amp; Display Settings</h3>
+    <div class="admin-card card-specs" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-heading); margin-bottom: 1.25rem;">🌐 Publishing &amp; Display Settings</h3>
 
-        <div style="display: flex; gap: 2.5rem; flex-wrap: wrap;">
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
-                <input type="checkbox" name="is_active" value="1" <?= (!empty($project['is_active']) || !isset($project['is_active'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson);">
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.75rem;">
+            <label style="display: inline-flex; align-items: center; gap: 0.65rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer; user-select: none;">
+                <input type="checkbox" name="is_active" value="1" <?= (!empty($project['is_active']) || !isset($project['is_active'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson); cursor: pointer;">
                 <span>Published (Visible on live website)</span>
             </label>
 
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
-                <input type="checkbox" name="show_on_home" value="1" <?= (!empty($project['show_on_home']) || !isset($project['show_on_home'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson);">
+            <label style="display: inline-flex; align-items: center; gap: 0.65rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer; user-select: none;">
+                <input type="checkbox" name="show_on_home" value="1" <?= (!empty($project['show_on_home']) || !isset($project['show_on_home'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson); cursor: pointer;">
                 <span>Show in Homepage Portfolio Grid</span>
             </label>
 
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
-                <input type="checkbox" name="is_featured" value="1" <?= (!empty($project['is_featured'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson);">
+            <label style="display: inline-flex; align-items: center; gap: 0.65rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer; user-select: none;">
+                <input type="checkbox" name="is_featured" value="1" <?= (!empty($project['is_featured'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson); cursor: pointer;">
                 <span>Mark as Featured Showcase</span>
             </label>
         </div>
 
-        <div style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
-            <button type="submit" class="btn-primary" style="padding: 0.85rem 2rem; font-size: 0.95rem;">Save &amp; Update Live Site &rarr;</button>
-            <a href="/admin/projects" class="btn-secondary" style="padding: 0.85rem 1.5rem;">Cancel</a>
+        <div style="padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <button type="submit" class="btn-primary" style="padding: 0.85rem 2.2rem; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.6rem;">
+                <span>💾 Save &amp; Update Project</span>
+                <span>&rarr;</span>
+            </button>
+            <a href="/admin/projects" class="btn-secondary" style="padding: 0.85rem 1.6rem;">Cancel</a>
         </div>
     </div>
 </form>

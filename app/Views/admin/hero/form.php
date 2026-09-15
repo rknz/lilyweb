@@ -154,7 +154,7 @@ use Lilyweb\Core\Security;
 
                 <div class="media-preview-container">
                     <?php if (!empty($slide['image_url'])): ?>
-                        <img src="<?= Security::e($slide['image_url']) ?>" alt="" class="media-preview-thumb">
+                        <img src="<?= asset($slide['image_url']) ?>" alt="" class="media-preview-thumb">
                         <div class="media-preview-meta">
                             <div class="media-preview-url"><?= Security::e($slide['image_url']) ?></div>
                         </div>
