@@ -1,11 +1,38 @@
 <?php
 use Lilyweb\Core\Security;
+
+// Pre-process JSON data for form inputs
+$featuresArr = json_decode($project['features_json'] ?? '[]', true);
+if (!is_array($featuresArr)) $featuresArr = [];
+$featuresText = implode("\n", array_filter($featuresArr, 'is_string'));
+
+$materialsArr = json_decode($project['materials_json'] ?? '[]', true);
+if (!is_array($materialsArr)) $materialsArr = [];
+$materialsText = implode("\n", array_filter($materialsArr, 'is_string'));
+
+$highlightsArr = json_decode($project['highlights_json'] ?? '[]', true);
+if (!is_array($highlightsArr)) $highlightsArr = [];
+$highlightsTitles = array_map(function($h) {
+    return is_array($h) ? ($h['title'] ?? '') : (string)$h;
+}, $highlightsArr);
+$highlightsText = implode("\n", array_filter($highlightsTitles));
+
+// Ensure valid gallery JSON
+$galleryJson = $project['gallery_json'] ?? '[]';
+if (empty($galleryJson) || $galleryJson === 'null') {
+    $galleryJson = !empty($project['cover_image']) ? json_encode([$project['cover_image']]) : '[]';
+}
 ?>
 <!-- Highlighted Back Button with Generous Spacing -->
-<div style="margin-bottom: 1.5rem;">
+<div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
     <a href="/admin/projects" class="btn-back-highlight">
         <span>&larr; Back to Projects Portfolio</span>
     </a>
+    <?php if (!empty($project['id'])): ?>
+        <a href="/projects/<?= Security::e($project['slug'] ?? '') ?>" target="_blank" class="btn-secondary" style="font-size: 0.82rem; padding: 0.45rem 1rem;">
+            <span>↗ View Live Page</span>
+        </a>
+    <?php endif; ?>
 </div>
 
 <form action="/admin/projects/save" method="POST" enctype="multipart/form-data">
@@ -42,13 +69,13 @@ use Lilyweb\Core\Security;
 
             <div class="form-group">
                 <label class="form-label">Executive Summary / Overview (EN) <span class="req" style="color: var(--crimson);">*</span></label>
-                <textarea name="summary_en" class="form-textarea" style="min-height: 100px;" required placeholder="Brief narrative of this project"><?= Security::e($project['summary_en'] ?? '') ?></textarea>
+                <textarea name="summary_en" class="form-textarea" style="min-height: 90px;" required placeholder="Brief narrative of this project"><?= Security::e($project['summary_en'] ?? '') ?></textarea>
                 <p class="form-help">Lead paragraph displayed on project details page.</p>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Detailed Solution / Narrative (EN)</label>
-                <textarea name="description_en" class="form-textarea" style="min-height: 90px;" placeholder="Full architectural details"><?= Security::e($project['description_en'] ?? '') ?></textarea>
+                <textarea name="description_en" class="form-textarea" style="min-height: 90px;" placeholder="Full architectural and design details"><?= Security::e($project['description_en'] ?? '') ?></textarea>
             </div>
 
             <div class="form-grid" style="gap: 1rem;">
@@ -60,6 +87,24 @@ use Lilyweb\Core\Security;
                     <label class="form-label">Design Style (EN)</label>
                     <input type="text" name="design_style_en" class="form-input" value="<?= Security::e($project['design_style_en'] ?? 'Modern Luxury Minimalism') ?>" placeholder="Modern Luxury Minimalism">
                 </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+                <label class="form-label">Key Features Checklist (One feature per line)</label>
+                <textarea name="features_en" class="form-textarea" style="min-height: 95px; font-size: 0.85rem;" placeholder="Open-plan layout with natural illumination&#10;Custom acoustic wall cladding&#10;Smart circadian ambient lighting"><?= Security::e($featuresText) ?></textarea>
+                <p class="form-help">Displayed with red checkmark icons in the Details tab.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Materials &amp; Finishes Specifications (One per line)</label>
+                <textarea name="materials_en" class="form-textarea" style="min-height: 85px; font-size: 0.85rem;" placeholder="Italian Statuario marble floor tiles&#10;European White Oak veneer paneling&#10;German Blum soft-close hardware"><?= Security::e($materialsText) ?></textarea>
+                <p class="form-help">Displayed in the Finishes &amp; Materials tab.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Project Highlights (One per line)</label>
+                <textarea name="highlights_en" class="form-textarea" style="min-height: 75px; font-size: 0.85rem;" placeholder="Custom Joinery & Woodwork&#10;Concealed Ambient Lighting&#10;100% Quality Execution"><?= Security::e($highlightsText) ?></textarea>
+                <p class="form-help">Displayed in the Highlights card.</p>
             </div>
         </div>
 
@@ -84,7 +129,7 @@ use Lilyweb\Core\Security;
 
             <div class="form-group">
                 <label class="form-label">প্রজেক্ট সারাংশ (বাংলা) <span class="opt" style="color: var(--text-muted);">(Optional)</span></label>
-                <textarea name="summary_bn" class="form-textarea" style="min-height: 100px;" placeholder="বাংলা বিবরণ"><?= Security::e($project['summary_bn'] ?? '') ?></textarea>
+                <textarea name="summary_bn" class="form-textarea" style="min-height: 90px;" placeholder="বাংলা বিবরণ"><?= Security::e($project['summary_bn'] ?? '') ?></textarea>
             </div>
 
             <div class="form-group">
@@ -102,33 +147,42 @@ use Lilyweb\Core\Security;
                     <input type="text" name="design_style_bn" class="form-input" value="<?= Security::e($project['design_style_bn'] ?? '') ?>" placeholder="যেমন: মডার্ন লাক্সারি মিনিমালিজম">
                 </div>
             </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+                <label class="form-label">প্রধান ফিচারসমূহ (বাংলা - প্রতি লাইনে একটি)</label>
+                <textarea name="features_bn" class="form-textarea" style="min-height: 95px; font-size: 0.85rem;" placeholder="উন্মুক্ত লিভিং ও ডাইনিং স্পেস লেআউট&#10;কাস্টম মেড ফার্নিচার ও গোপন স্টোরেজ"><?= Security::e($project['features_bn'] ?? '') ?></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">ব্যবহৃত ম্যাটেরিয়ালস (বাংলা - প্রতি লাইনে একটি)</label>
+                <textarea name="materials_bn" class="form-textarea" style="min-height: 85px; font-size: 0.85rem;" placeholder="ইতালীয় মার্বেল ও কোয়ার্টজ ফিনিশিং&#10;আমদানিকৃত ইউরোপিয়ান ওক কাঠ"><?= Security::e($project['materials_bn'] ?? '') ?></textarea>
+            </div>
         </div>
     </div>
 
     <!-- Specifications, Categories, URLs & Instant Photo Uploader -->
-    <div class="admin-card card-specs">
-        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-heading); margin-bottom: 1.4rem;">Specifications, Primary Cover Image &amp; Gallery</h3>
+    <div class="admin-card card-specs" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-heading); margin-bottom: 1.4rem;">⚙️ Specifications &amp; Taxonomies</h3>
 
         <div class="form-grid">
             <div class="form-group">
-                <label class="form-label">Project Category <span class="req" style="color: var(--crimson);">*</span></label>
-                <select name="category_id" class="form-input">
-                    <?php foreach ($categories as $cat): ?>
-                        <option value="<?= (int) $cat['id'] ?>" <?= ((int)($project['category_id'] ?? 0) === (int)$cat['id']) ? 'selected' : '' ?>>
-                            <?= Security::e($cat['name_en']) ?> (<?= Security::e($cat['slug']) ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Room Type Key <span class="req" style="color: var(--crimson);">*</span></label>
+                <label class="form-label">Room Type Category <span class="req" style="color: var(--crimson);">*</span></label>
                 <select name="room_type_key" class="form-input">
-                    <option value="living-room" <?= ($project['room_type_key'] ?? '') === 'living-room' ? 'selected' : '' ?>>Living Room</option>
+                    <option value="living_room" <?= in_array(($project['room_type_key'] ?? ''), ['living_room', 'living-room']) ? 'selected' : '' ?>>Living Room</option>
                     <option value="bedroom" <?= ($project['room_type_key'] ?? '') === 'bedroom' ? 'selected' : '' ?>>Bedroom</option>
                     <option value="kitchen" <?= ($project['room_type_key'] ?? '') === 'kitchen' ? 'selected' : '' ?>>Gourmet Kitchen</option>
                     <option value="office" <?= ($project['room_type_key'] ?? '') === 'office' ? 'selected' : '' ?>>Office / Commercial</option>
                     <option value="others" <?= ($project['room_type_key'] ?? '') === 'others' ? 'selected' : '' ?>>Others / Exterior</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Property / Project Type <span class="req" style="color: var(--crimson);">*</span></label>
+                <select name="property_type_key" class="form-input">
+                    <option value="residential" <?= ($project['property_type_key'] ?? '') === 'residential' ? 'selected' : '' ?>>Residential</option>
+                    <option value="commercial" <?= ($project['property_type_key'] ?? '') === 'commercial' ? 'selected' : '' ?>>Commercial</option>
+                    <option value="turnkey-duplex" <?= in_array(($project['property_type_key'] ?? ''), ['turnkey', 'turnkey-duplex', 'turnkey_duplex']) ? 'selected' : '' ?>>Turnkey Duplex</option>
+                    <option value="renovation" <?= ($project['property_type_key'] ?? '') === 'renovation' ? 'selected' : '' ?>>Renovation</option>
                 </select>
             </div>
 
@@ -140,12 +194,21 @@ use Lilyweb\Core\Security;
 
             <div class="form-group">
                 <label class="form-label">Floor Area Size</label>
-                <input type="text" name="area_sqft" class="form-input" value="<?= Security::e($project['area_sqft'] ?? '2,800 sq.ft') ?>" placeholder="2,800 sq.ft">
+                <input type="text" name="area_sqft" class="form-input" value="<?= Security::e($project['area_sqft'] ?? '2,800 sqft') ?>" placeholder="2,800 sqft">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Completion Year</label>
-                <input type="text" name="completion_year" class="form-input" value="<?= Security::e($project['completion_year'] ?? '2024') ?>" placeholder="2024">
+                <input type="text" name="completion_year" class="form-input" value="<?= Security::e($project['completion_year'] ?? '2026') ?>" placeholder="2026">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Project Status</label>
+                <select name="project_status" class="form-input">
+                    <option value="Completed" <?= ($project['project_status'] ?? '') === 'Completed' ? 'selected' : '' ?>>Completed</option>
+                    <option value="In Progress" <?= ($project['project_status'] ?? '') === 'In Progress' ? 'selected' : '' ?>>In Progress</option>
+                    <option value="Concept" <?= ($project['project_status'] ?? '') === 'Concept' ? 'selected' : '' ?>>Concept</option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -153,64 +216,135 @@ use Lilyweb\Core\Security;
                 <input type="number" name="sort_order" class="form-input" value="<?= (int) ($project['sort_order'] ?? 1) ?>" min="0" max="99">
             </div>
         </div>
+    </div>
 
-        <!-- Primary Cover Image with Instant Upload & Media Picker -->
-        <div class="form-group" style="margin-top: 1.5rem;">
-            <label class="form-label">Primary Cover Image <span class="req" style="color: var(--crimson);">*</span></label>
-            <div class="media-uploader-box" data-input-name="cover_image">
-                <input type="hidden" name="cover_image" value="<?= Security::e($project['cover_image'] ?? '') ?>">
-                <input type="file" class="hidden-file-input" accept="image/*" style="display: none;">
-                
-                <div class="media-uploader-actions">
-                    <button type="button" class="btn-uploader-upload">
-                        <span>📤 Upload Photo Directly</span>
-                    </button>
-                    <button type="button" class="btn-uploader-picker">
-                        <span>📁 Choose from Media Library</span>
-                    </button>
-                    <span style="font-size: 0.78rem; color: var(--text-muted);">Instant direct upload or select from 248+ media assets.</span>
-                </div>
+    <!-- Primary Cover Image -->
+    <div class="admin-card" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-heading); margin-bottom: 0.5rem;">🖼️ Primary Cover Image</h3>
+        <p style="color: var(--text-muted); font-size: 0.84rem; margin-bottom: 1.25rem;">
+            This is the main showcase image displayed on homepage portfolio cards, project directory cards, and as the initial slider photo.
+        </p>
 
-                <div class="media-preview-container">
-                    <?php if (!empty($project['cover_image'])): ?>
-                        <img src="<?= Security::e($project['cover_image']) ?>" alt="" class="media-preview-thumb">
-                        <div class="media-preview-meta">
-                            <div class="media-preview-url"><?= Security::e($project['cover_image']) ?></div>
-                        </div>
-                        <button type="button" class="btn-media-remove">Remove</button>
-                    <?php else: ?>
-                        <p style="font-size: 0.78rem; color: var(--text-muted);">No image selected yet. Click Upload or Choose above.</p>
-                    <?php endif; ?>
-                </div>
+        <div class="media-uploader-box" data-input-name="cover_image">
+            <input type="hidden" name="cover_image" value="<?= Security::e($project['cover_image'] ?? '') ?>">
+            <input type="file" class="hidden-file-input" accept="image/*" style="display: none;">
+            
+            <div class="media-uploader-actions">
+                <button type="button" class="btn-uploader-upload">
+                    <span>📤 Upload Cover Directly</span>
+                </button>
+                <button type="button" class="btn-uploader-picker">
+                    <span>📁 Choose from Media Library</span>
+                </button>
+            </div>
+
+            <div class="media-preview-container">
+                <?php if (!empty($project['cover_image'])): ?>
+                    <img src="<?= Security::e($project['cover_image']) ?>" alt="" class="media-preview-thumb">
+                    <div class="media-preview-meta">
+                        <div class="media-preview-url"><?= Security::e($project['cover_image']) ?></div>
+                    </div>
+                    <button type="button" class="btn-media-remove">Remove</button>
+                <?php else: ?>
+                    <p style="font-size: 0.78rem; color: var(--text-muted);">No cover image selected yet. Click Upload or Choose above.</p>
+                <?php endif; ?>
             </div>
         </div>
+    </div>
 
-        <div class="form-group" style="margin-top: 1.25rem;">
-            <label class="form-label">Gallery Images (One URL per line)</label>
-            <textarea name="gallery_images" class="form-textarea" style="min-height: 100px; font-family: monospace; font-size: 0.85rem;" placeholder="/assets/img/project-1.webp&#10;/assets/img/project-2.webp"><?= Security::e(is_array($project['gallery_images'] ?? null) ? implode("\n", $project['gallery_images']) : ($project['gallery_images'] ?? '')) ?></textarea>
-            <p class="form-help">Enter high-resolution gallery URLs line-by-line for the project lightbox slider.</p>
+    <!-- Interactive Project Gallery & Slider Photos Manager -->
+    <div class="admin-card" style="margin-top: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-heading); display: flex; align-items: center; gap: 0.6rem;">
+                <span>📸 Project Gallery &amp; Detail Page Slider Photos</span>
+                <span class="gallery-counter-badge">
+                    <span class="gallery-count-num">0</span> Photos Added
+                </span>
+            </h3>
         </div>
+        <p style="color: var(--text-muted); font-size: 0.84rem; margin-bottom: 1.25rem;">
+            These high-resolution photos populate the <strong>Interactive Main Slider</strong>, <strong>8-Thumbnail Navigation Row</strong>, and the <strong>Photo Gallery Tab</strong> on the live project details page.
+        </p>
 
-        <div style="display: flex; gap: 2rem; margin-top: 1.25rem; flex-wrap: wrap;">
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
-                <input type="checkbox" name="is_active" value="1" <?= (!empty($project['is_active'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson);">
-                <span>Published (Visible on live site)</span>
+        <div class="gallery-manager-box" id="project_gallery_manager">
+            <input type="hidden" name="gallery_json" class="gallery-json-data" value="<?= Security::e($galleryJson) ?>">
+            <input type="file" class="gallery-file-input" multiple accept="image/*" style="display: none;">
+
+            <div class="media-uploader-actions">
+                <button type="button" class="btn-uploader-upload btn-gallery-upload">
+                    <span>📤 Upload Multiple Photos Directly</span>
+                </button>
+                <button type="button" class="btn-uploader-picker btn-gallery-picker">
+                    <span>📁 Choose Multiple from Media Library</span>
+                </button>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Select multiple images at once (JPG, PNG, WEBP).</span>
+            </div>
+
+            <!-- Live Thumbnail Preview Grid -->
+            <div class="gallery-grid-preview">
+                <!-- Populated automatically by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Proposal PDF Document -->
+    <div class="admin-card" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-heading); margin-bottom: 0.5rem;">📄 Project Proposal Document (PDF)</h3>
+        <p style="color: var(--text-muted); font-size: 0.84rem; margin-bottom: 1.25rem;">
+            Optional PDF proposal brochure downloaded by clients clicking "Download Proposal" on the project details page.
+        </p>
+
+        <div class="media-uploader-box" data-input-name="proposal_pdf">
+            <input type="hidden" name="proposal_pdf" value="<?= Security::e($project['proposal_pdf'] ?? '') ?>">
+            <input type="file" class="hidden-file-input" accept="application/pdf,image/*" style="display: none;">
+            
+            <div class="media-uploader-actions">
+                <button type="button" class="btn-uploader-upload">
+                    <span>📤 Upload PDF Document</span>
+                </button>
+                <button type="button" class="btn-uploader-picker">
+                    <span>📁 Select from Media Assets</span>
+                </button>
+            </div>
+
+            <div class="media-preview-container">
+                <?php if (!empty($project['proposal_pdf'])): ?>
+                    <div style="font-size: 2rem;">📄</div>
+                    <div class="media-preview-meta">
+                        <div class="media-preview-url"><?= Security::e($project['proposal_pdf']) ?></div>
+                    </div>
+                    <button type="button" class="btn-media-remove">Remove</button>
+                <?php else: ?>
+                    <p style="font-size: 0.78rem; color: var(--text-muted);">No proposal document attached yet.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Publishing & Visibility Options -->
+    <div class="admin-card" style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-heading); margin-bottom: 1rem;">🌐 Publishing &amp; Display Settings</h3>
+
+        <div style="display: flex; gap: 2.5rem; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
+                <input type="checkbox" name="is_active" value="1" <?= (!empty($project['is_active']) || !isset($project['is_active'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson);">
+                <span>Published (Visible on live website)</span>
             </label>
 
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
-                <input type="checkbox" name="show_on_home" value="1" <?= (!empty($project['show_on_home'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson);">
-                <span>Show in Homepage 6-Card Grid</span>
+            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
+                <input type="checkbox" name="show_on_home" value="1" <?= (!empty($project['show_on_home']) || !isset($project['show_on_home'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson);">
+                <span>Show in Homepage Portfolio Grid</span>
             </label>
 
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
+            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; font-weight: 700; color: var(--text-heading); cursor: pointer;">
                 <input type="checkbox" name="is_featured" value="1" <?= (!empty($project['is_featured'])) ? 'checked' : '' ?> style="width: 20px; height: 20px; accent-color: var(--crimson);">
-                <span>Mark as Featured Project</span>
+                <span>Mark as Featured Showcase</span>
             </label>
         </div>
 
         <div style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
-            <button type="submit" class="btn-primary" style="padding: 0.75rem 1.6rem; font-size: 0.92rem;">Save &amp; Update Live Site &rarr;</button>
-            <a href="/admin/projects" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary" style="padding: 0.85rem 2rem; font-size: 0.95rem;">Save &amp; Update Live Site &rarr;</button>
+            <a href="/admin/projects" class="btn-secondary" style="padding: 0.85rem 1.5rem;">Cancel</a>
         </div>
     </div>
 </form>

@@ -138,6 +138,8 @@ Router::get('/admin/projects', [AdminProjectController::class, 'index']);
 Router::get('/admin/projects/create', [AdminProjectController::class, 'create']);
 Router::get('/admin/projects/edit/{id}', [AdminProjectController::class, 'edit']);
 Router::post('/admin/projects/save', [AdminProjectController::class, 'save']);
+Router::post('/admin/projects/duplicate', [AdminProjectController::class, 'duplicate']);
+Router::get('/admin/projects/duplicate/{id}', [AdminProjectController::class, 'duplicate']);
 Router::post('/admin/projects/delete', [AdminProjectController::class, 'delete']);
 
 // Public Contact & Consultation Form Handler

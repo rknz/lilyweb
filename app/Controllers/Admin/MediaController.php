@@ -226,7 +226,7 @@ final class MediaController extends AdminController
     }
 
     /**
-     * Instant AJAX File Upload for in-form image uploaders.
+     * Instant AJAX File Upload for in-form image & document uploaders (single & multi-file batch).
      */
     public function quickUpload(array $params = []): Response
     {
@@ -234,69 +234,117 @@ final class MediaController extends AdminController
             return Response::json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
-        $file = $_FILES['file'] ?? $_FILES['image_file'] ?? null;
-        if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
-            return Response::json(['success' => false, 'message' => 'No file uploaded or file upload error'], 400);
-        }
-
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
-
-        if (!in_array($mime, $allowedMimes, true)) {
-            return Response::json(['success' => false, 'message' => 'Invalid image format. Allowed: JPG, PNG, WEBP, GIF, SVG'], 400);
-        }
-
-        $origName = $file['name'];
-        $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
-        $cleanBase = preg_replace('/[^a-zA-Z0-9_\-]+/', '-', pathinfo($origName, PATHINFO_FILENAME));
-        $uniqueFilename = $cleanBase . '_' . time() . '.' . $ext;
-
+        $allowedMimes = [
+            'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'application/pdf'
+        ];
         $targetDir = dirname(__DIR__, 3) . '/public/uploads';
         if (!is_dir($targetDir)) {
             @mkdir($targetDir, 0755, true);
         }
 
-        $targetPath = $targetDir . '/' . $uniqueFilename;
-        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
-            return Response::json(['success' => false, 'message' => 'Failed to save file on server'], 500);
+        $pdo = Database::connect();
+
+        // Check for multiple files in 'files' or 'file'
+        $filesToProcess = [];
+        if (!empty($_FILES['files']) && is_array($_FILES['files']['name'])) {
+            foreach ($_FILES['files']['name'] as $idx => $name) {
+                if ($_FILES['files']['error'][$idx] === UPLOAD_ERR_OK) {
+                    $filesToProcess[] = [
+                        'name' => $_FILES['files']['name'][$idx],
+                        'type' => $_FILES['files']['type'][$idx],
+                        'tmp_name' => $_FILES['files']['tmp_name'][$idx],
+                        'size' => $_FILES['files']['size'][$idx],
+                    ];
+                }
+            }
+        } elseif (!empty($_FILES['file']) && is_array($_FILES['file']['name'])) {
+            foreach ($_FILES['file']['name'] as $idx => $name) {
+                if ($_FILES['file']['error'][$idx] === UPLOAD_ERR_OK) {
+                    $filesToProcess[] = [
+                        'name' => $_FILES['file']['name'][$idx],
+                        'type' => $_FILES['file']['type'][$idx],
+                        'tmp_name' => $_FILES['file']['tmp_name'][$idx],
+                        'size' => $_FILES['file']['size'][$idx],
+                    ];
+                }
+            }
+        } elseif (!empty($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+            $filesToProcess[] = $_FILES['file'];
+        } elseif (!empty($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
+            $filesToProcess[] = $_FILES['image_file'];
         }
 
-        $storagePath = '/uploads/' . $uniqueFilename;
-        $sizeBytes = filesize($targetPath) ?: $file['size'];
-        $dims = @getimagesize($targetPath);
-        $w = $dims ? $dims[0] : null;
-        $h = $dims ? $dims[1] : null;
-        $altEn = ucwords(str_replace(['-', '_'], ' ', $cleanBase)) . ' — Lily Interiors';
+        if (empty($filesToProcess)) {
+            return Response::json(['success' => false, 'message' => 'No files were uploaded or an upload error occurred'], 400);
+        }
 
-        try {
-            $pdo = Database::connect();
-            $stmt = $pdo->prepare("
-                INSERT INTO `lilyweb_media_assets`
-                (`original_name`, `filename`, `storage_path`, `mime_type`, `size_bytes`, `width`, `height`, `alt_en`, `hash_sha256`)
-                VALUES (:orig, :fn, :path, :mime, :size, :w, :h, :alte, :hash)
-            ");
-            $stmt->execute([
-                ':orig' => $origName,
-                ':fn' => $uniqueFilename,
-                ':path' => $storagePath,
-                ':mime' => $mime,
-                ':size' => $sizeBytes,
-                ':w' => $w,
-                ':h' => $h,
-                ':alte' => $altEn,
-                ':hash' => hash_file('sha256', $targetPath),
-            ]);
-        } catch (Exception $e) {
-            // fail-safe
+        $uploadedUrls = [];
+        $lastUrl = '';
+        $lastFilename = '';
+
+        foreach ($filesToProcess as $file) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+
+            if (!in_array($mime, $allowedMimes, true)) {
+                continue;
+            }
+
+            $origName = $file['name'];
+            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+            $cleanBase = preg_replace('/[^a-zA-Z0-9_\-]+/', '-', pathinfo($origName, PATHINFO_FILENAME));
+            $uniqueFilename = $cleanBase . '_' . time() . '_' . mt_rand(100, 999) . '.' . $ext;
+
+            $targetPath = $targetDir . '/' . $uniqueFilename;
+            if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+                continue;
+            }
+
+            $storagePath = '/uploads/' . $uniqueFilename;
+            $sizeBytes = filesize($targetPath) ?: $file['size'];
+            $dims = ($mime !== 'application/pdf') ? @getimagesize($targetPath) : null;
+            $w = $dims ? $dims[0] : null;
+            $h = $dims ? $dims[1] : null;
+            $altEn = ucwords(str_replace(['-', '_'], ' ', $cleanBase)) . ' — Lily Interiors';
+
+            try {
+                $stmt = $pdo->prepare("
+                    INSERT INTO `lilyweb_media_assets`
+                    (`original_name`, `filename`, `storage_path`, `mime_type`, `size_bytes`, `width`, `height`, `alt_en`, `hash_sha256`)
+                    VALUES (:orig, :fn, :path, :mime, :size, :w, :h, :alte, :hash)
+                ");
+                $stmt->execute([
+                    ':orig' => $origName,
+                    ':fn' => $uniqueFilename,
+                    ':path' => $storagePath,
+                    ':mime' => $mime,
+                    ':size' => $sizeBytes,
+                    ':w' => $w,
+                    ':h' => $h,
+                    ':alte' => $altEn,
+                    ':hash' => hash_file('sha256', $targetPath),
+                ]);
+            } catch (Exception $e) {
+                // fail-safe
+            }
+
+            $uploadedUrls[] = $storagePath;
+            $lastUrl = $storagePath;
+            $lastFilename = $uniqueFilename;
+        }
+
+        if (empty($uploadedUrls)) {
+            return Response::json(['success' => false, 'message' => 'No valid images could be saved.'], 400);
         }
 
         return Response::json([
             'success' => true,
-            'url' => $storagePath,
-            'filename' => $uniqueFilename,
-            'message' => 'Uploaded successfully'
+            'url' => $lastUrl,
+            'urls' => $uploadedUrls,
+            'count' => count($uploadedUrls),
+            'filename' => $lastFilename,
+            'message' => count($uploadedUrls) . ' file(s) uploaded successfully'
         ]);
     }
 

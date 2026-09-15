@@ -74,10 +74,16 @@ use Lilyweb\Core\Security;
                                 </span>
                             </td>
                             <td style="text-align: right;">
-                                <div style="display: inline-flex; gap: 0.45rem;">
-                                    <a href="/projects/<?= Security::e($p['slug']) ?>" target="_blank" class="btn-secondary" style="padding: 0.42rem 0.7rem; font-size: 0.82rem;" title="View public page">↗</a>
+                                <div style="display: inline-flex; gap: 0.45rem; align-items: center;">
+                                    <a href="/projects/<?= Security::e($p['slug']) ?>" target="_blank" class="btn-secondary" style="padding: 0.42rem 0.7rem; font-size: 0.82rem;" title="View public project page">↗</a>
                                     <a href="/admin/projects/edit/<?= (int) $p['id'] ?>" class="btn-secondary" style="padding: 0.42rem 0.85rem; font-size: 0.82rem;">Edit</a>
                                     
+                                    <form action="/admin/projects/duplicate" method="POST" style="display: inline;">
+                                        <?= Security::csrfField() ?>
+                                        <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
+                                        <button type="submit" class="btn-secondary" style="padding: 0.42rem 0.75rem; font-size: 0.82rem;" title="Duplicate this project with all photos and specs">📋 Duplicate</button>
+                                    </form>
+
                                     <form action="/admin/projects/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this project?');" style="display: inline;">
                                         <?= Security::csrfField() ?>
                                         <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">

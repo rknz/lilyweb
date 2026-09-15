@@ -41,13 +41,26 @@ $portfolioProjects = Project::all();
                          data-reveal>
                     <a href="/projects/<?= View::e($project['slug']) ?>" class="project-card-link" aria-label="View <?= View::e($project['title']) ?>">
                         <div class="project-thumb">
-                            <picture>
-                                <source srcset="<?= View::e(preg_replace('/\.(jpg|png)$/i', '.webp', $project['image'])) ?>" type="image/webp">
-                                <img src="<?= View::e($project['image']) ?>"
+                            <?php 
+                            $coverImg = $project['image'] ?: '/assets/img/project-1.jpg';
+                            // Only use .webp source replacement for predefined /assets/img/ files that have physical webp counterparts
+                            $isAssetImg = str_starts_with($coverImg, '/assets/img/');
+                            $webpSrc = $isAssetImg ? preg_replace('/\.(jpg|png|jpeg)$/i', '.webp', $coverImg) : $coverImg;
+                            ?>
+                            <?php if ($isAssetImg && $webpSrc !== $coverImg): ?>
+                                <picture>
+                                    <source srcset="<?= View::e($webpSrc) ?>" type="image/webp">
+                                    <img src="<?= View::e($coverImg) ?>"
+                                         alt="<?= View::e($project['title']) ?> - <?= View::e($project['location']) ?>"
+                                         width="400" height="280"
+                                         loading="lazy" decoding="async">
+                                </picture>
+                            <?php else: ?>
+                                <img src="<?= View::e($coverImg) ?>"
                                      alt="<?= View::e($project['title']) ?> - <?= View::e($project['location']) ?>"
                                      width="400" height="280"
                                      loading="lazy" decoding="async">
-                            </picture>
+                            <?php endif; ?>
                             <span class="project-cat-badge"><?= View::e($project['room_type']) ?></span>
                         </div>
                         <div class="project-body">

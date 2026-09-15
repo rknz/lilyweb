@@ -980,35 +980,125 @@ Session::flush();
             background: var(--bg-card-alt);
         }
 
-        .admin-footer-strip {
-            padding: 1.5rem 2.4rem;
+        /* Gallery Manager & Multi-picker CSS */
+        .picker-item.is-selected {
+            border-color: var(--crimson) !important;
+            box-shadow: 0 0 0 2px var(--crimson), 0 6px 16px var(--crimson-glow) !important;
+        }
+        .picker-item.is-selected::after {
+            content: '✓';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: var(--crimson);
+            color: #FFFFFF;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        .picker-modal-footer {
+            padding: 1rem 1.5rem;
             border-top: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.82rem;
+            background: var(--bg-card-alt);
+        }
+        .gallery-manager-box {
+            background: var(--bg-input);
+            border: 1.5px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            transition: var(--transition-smooth);
+        }
+        .gallery-manager-box:hover {
+            border-color: var(--crimson);
+        }
+        .gallery-grid-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 1rem;
+            margin-top: 1.25rem;
+        }
+        .gallery-item-card {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+        }
+        .gallery-item-card:hover {
+            border-color: var(--crimson);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        .gallery-item-thumb {
+            width: 100%;
+            height: 95px;
+            object-fit: cover;
+            background: #000;
+            display: block;
+        }
+        .gallery-item-info {
+            padding: 0.4rem 0.5rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
-            background: var(--bg-topbar);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card-alt);
         }
-
-        /* Mobile Drawer */
-        .sidebar-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(4px);
-            z-index: 95;
+        .gallery-item-idx {
+            font-weight: 800;
+            color: var(--crimson);
         }
-
-        @media (max-width: 1024px) {
-            .admin-sidebar { transform: translateX(-100%); }
-            body.sidebar-open .admin-sidebar { transform: translateX(0); }
-            body.sidebar-open .sidebar-backdrop { display: block; }
-            .sidebar-close-btn { display: flex; }
-            .admin-main { margin-left: 0; }
-            .mobile-menu-toggle { display: inline-flex; }
-            .admin-topbar, .admin-content, .admin-footer-strip { padding-inline: 1.25rem; }
+        .gallery-item-del-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(239, 68, 68, 0.9);
+            color: #FFFFFF;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            transition: var(--transition-smooth);
+        }
+        .gallery-item-del-btn:hover {
+            background: #DC2626;
+            transform: scale(1.15);
+        }
+        .gallery-counter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(200, 16, 46, 0.1);
+            color: var(--crimson);
+            border: 1px solid rgba(200, 16, 46, 0.25);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            font-weight: 800;
         }
     </style>
 </head>
@@ -1020,7 +1110,7 @@ Session::flush();
     <div id="picker-modal" class="picker-modal-backdrop">
         <div class="picker-modal-dialog">
             <div class="picker-modal-header">
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-heading);">📁 Select Image from Media Library</h3>
+                <h3 id="picker-modal-title" style="font-size: 1.15rem; font-weight: 800; color: var(--text-heading);">📁 Select Image from Media Library</h3>
                 <button type="button" id="picker-close-btn" style="background: none; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer;">&times;</button>
             </div>
             <div style="padding: 0.85rem 1.5rem 0;">
@@ -1030,6 +1120,10 @@ Session::flush();
                 <div id="picker-grid" class="picker-grid">
                     <p style="color: var(--text-muted); font-size: 0.86rem;">Loading media library images...</p>
                 </div>
+            </div>
+            <div id="picker-modal-footer" class="picker-modal-footer" style="display: none;">
+                <span id="picker-selection-count" style="font-size: 0.85rem; font-weight: 700; color: var(--text-heading);">0 selected</span>
+                <button type="button" id="picker-confirm-btn" class="btn-primary" style="padding: 0.55rem 1.4rem; font-size: 0.85rem;">Add Selected Images →</button>
             </div>
         </div>
     </div>
@@ -1235,14 +1329,22 @@ Session::flush();
             if (backdrop) backdrop.addEventListener('click', closeSidebar);
 
             // ========================================================
-            // UNIVERSAL MEDIA PICKER & INSTANT UPLOADER LOGIC
+            // UNIVERSAL MEDIA PICKER (SINGLE & MULTI-SELECT)
             // ========================================================
             var activeTargetInput = null;
             var activePreviewContainer = null;
+            var activeMultiCallback = null;
+            var isMultiMode = false;
+            var selectedMultiUrls = [];
+
             var pickerModal = document.getElementById('picker-modal');
+            var pickerTitle = document.getElementById('picker-modal-title');
             var pickerGrid = document.getElementById('picker-grid');
             var pickerCloseBtn = document.getElementById('picker-close-btn');
             var pickerSearch = document.getElementById('picker-search');
+            var pickerFooter = document.getElementById('picker-modal-footer');
+            var pickerCount = document.getElementById('picker-selection-count');
+            var pickerConfirmBtn = document.getElementById('picker-confirm-btn');
             var cachedMedia = [];
 
             function loadMediaList() {
@@ -1263,6 +1365,15 @@ Session::flush();
                     });
             }
 
+            function updateMultiCount() {
+                if (pickerCount) {
+                    pickerCount.textContent = selectedMultiUrls.length + ' image(s) selected';
+                }
+                if (pickerConfirmBtn) {
+                    pickerConfirmBtn.disabled = selectedMultiUrls.length === 0;
+                }
+            }
+
             function renderMediaGrid(items) {
                 if (!pickerGrid) return;
                 if (!items.length) {
@@ -1270,7 +1381,8 @@ Session::flush();
                     return;
                 }
                 pickerGrid.innerHTML = items.map(function(m) {
-                    return '<div class="picker-item" data-url="' + m.storage_path + '" data-name="' + m.filename + '">' +
+                    var isSelected = isMultiMode && selectedMultiUrls.indexOf(m.storage_path) !== -1;
+                    return '<div class="picker-item ' + (isSelected ? 'is-selected' : '') + '" data-url="' + m.storage_path + '" data-name="' + m.filename + '">' +
                         '<img src="' + m.storage_path + '" alt="' + (m.alt_en || '') + '">' +
                         '<div class="picker-item-name">' + m.filename + '</div>' +
                     '</div>';
@@ -1280,21 +1392,39 @@ Session::flush();
                 pickerItems.forEach(function(item) {
                     item.addEventListener('click', function() {
                         var url = this.getAttribute('data-url');
-                        if (activeTargetInput) {
-                            activeTargetInput.value = url;
-                            if (activePreviewContainer) {
-                                activePreviewContainer.innerHTML = '<img src="' + url + '" class="media-preview-thumb"><div class="media-preview-meta"><div class="media-preview-url">' + url + '</div></div><button type="button" class="btn-media-remove">Remove</button>';
-                                bindRemoveBtn(activePreviewContainer, activeTargetInput);
+                        if (isMultiMode) {
+                            var idx = selectedMultiUrls.indexOf(url);
+                            if (idx === -1) {
+                                selectedMultiUrls.push(url);
+                                this.classList.add('is-selected');
+                            } else {
+                                selectedMultiUrls.splice(idx, 1);
+                                this.classList.remove('is-selected');
                             }
+                            updateMultiCount();
+                        } else {
+                            if (activeTargetInput) {
+                                activeTargetInput.value = url;
+                                if (activePreviewContainer) {
+                                    activePreviewContainer.innerHTML = '<img src="' + url + '" class="media-preview-thumb"><div class="media-preview-meta"><div class="media-preview-url">' + url + '</div></div><button type="button" class="btn-media-remove">Remove</button>';
+                                    bindRemoveBtn(activePreviewContainer, activeTargetInput);
+                                }
+                            }
+                            closePicker();
                         }
-                        closePicker();
                     });
                 });
             }
 
             function openPicker(inputElem, previewElem) {
+                isMultiMode = false;
+                activeMultiCallback = null;
+                selectedMultiUrls = [];
                 activeTargetInput = inputElem;
                 activePreviewContainer = previewElem;
+                if (pickerTitle) pickerTitle.textContent = '📁 Select Image from Media Library';
+                if (pickerFooter) pickerFooter.style.display = 'none';
+
                 if (pickerModal) {
                     pickerModal.style.display = 'flex';
                     if (!cachedMedia.length) {
@@ -1305,8 +1435,40 @@ Session::flush();
                 }
             }
 
+            window.openMultiPicker = function(callback) {
+                isMultiMode = true;
+                activeTargetInput = null;
+                activePreviewContainer = null;
+                activeMultiCallback = callback;
+                selectedMultiUrls = [];
+                updateMultiCount();
+
+                if (pickerTitle) pickerTitle.textContent = '📁 Select Multiple Images for Gallery';
+                if (pickerFooter) pickerFooter.style.display = 'flex';
+
+                if (pickerModal) {
+                    pickerModal.style.display = 'flex';
+                    if (!cachedMedia.length) {
+                        loadMediaList();
+                    } else {
+                        renderMediaGrid(cachedMedia);
+                    }
+                }
+            };
+
             function closePicker() {
                 if (pickerModal) pickerModal.style.display = 'none';
+                isMultiMode = false;
+                selectedMultiUrls = [];
+            }
+
+            if (pickerConfirmBtn) {
+                pickerConfirmBtn.addEventListener('click', function() {
+                    if (isMultiMode && typeof activeMultiCallback === 'function') {
+                        activeMultiCallback(selectedMultiUrls.slice());
+                    }
+                    closePicker();
+                });
             }
 
             if (pickerCloseBtn) pickerCloseBtn.addEventListener('click', closePicker);
@@ -1337,7 +1499,7 @@ Session::flush();
                 }
             }
 
-            // Initialize all .media-uploader-box components
+            // Initialize all .media-uploader-box components (Single Uploaders)
             window.initMediaUploaders = function() {
                 document.querySelectorAll('.media-uploader-box').forEach(function(box) {
                     var inputName = box.getAttribute('data-input-name');
@@ -1347,13 +1509,15 @@ Session::flush();
                     var fileInput = box.querySelector('.hidden-file-input');
                     var previewContainer = box.querySelector('.media-preview-container');
 
-                    if (pickerBtn) {
+                    if (pickerBtn && !pickerBtn._bound) {
+                        pickerBtn._bound = true;
                         pickerBtn.addEventListener('click', function() {
                             openPicker(targetInput, previewContainer);
                         });
                     }
 
-                    if (uploadBtn && fileInput) {
+                    if (uploadBtn && fileInput && !uploadBtn._bound) {
+                        uploadBtn._bound = true;
                         uploadBtn.addEventListener('click', function() {
                             fileInput.click();
                         });
@@ -1373,18 +1537,18 @@ Session::flush();
                             })
                             .then(function(r) { return r.json(); })
                             .then(function(res) {
-                                uploadBtn.innerHTML = '📤 Upload Image';
+                                uploadBtn.innerHTML = '📤 Upload Photo Directly';
                                 uploadBtn.disabled = false;
                                 if (res.success && res.url) {
                                     targetInput.value = res.url;
-                                    previewContainer.innerHTML = '<img src="' + res.url + '" class="media-preview-thumb"><div class="media-preview-meta"><div class="media-preview-url">' + res.url + '</div><span class="badge badge-success" style="font-size: 0.68rem;">✓ Uploaded Now</span></div><button type="button" class="btn-media-remove">Remove</button>';
+                                    previewContainer.innerHTML = '<img src="' + res.url + '" class="media-preview-thumb"><div class="media-preview-meta"><div class="media-preview-url">' + res.url + '</div><span class="badge badge-success" style="font-size: 0.68rem; color: #15803D;">✓ Uploaded Now</span></div><button type="button" class="btn-media-remove">Remove</button>';
                                     bindRemoveBtn(previewContainer, targetInput);
                                 } else {
                                     alert(res.message || 'Upload failed');
                                 }
                             })
                             .catch(function() {
-                                credentials.innerHTML = '📤 Upload Image';
+                                uploadBtn.innerHTML = '📤 Upload Photo Directly';
                                 uploadBtn.disabled = false;
                                 alert('Error during file upload.');
                             });
@@ -1394,6 +1558,148 @@ Session::flush();
                     if (previewContainer && targetInput) {
                         bindRemoveBtn(previewContainer, targetInput);
                     }
+                });
+            };
+
+            // ========================================================
+            // PROJECT MULTI-IMAGE GALLERY MANAGER
+            // ========================================================
+            window.initGalleryManagers = function() {
+                var galleryBoxes = document.querySelectorAll('.gallery-manager-box');
+                galleryBoxes.forEach(function(box) {
+                    if (box._initialized) return;
+                    box._initialized = true;
+
+                    var jsonInput = box.querySelector('input[type="hidden"].gallery-json-data');
+                    var gridContainer = box.querySelector('.gallery-grid-preview');
+                    var countBadge = box.querySelector('.gallery-count-num');
+                    var uploadBtn = box.querySelector('.btn-gallery-upload');
+                    var pickerBtn = box.querySelector('.btn-gallery-picker');
+                    var fileInput = box.querySelector('.gallery-file-input');
+
+                    var galleryImages = [];
+                    try {
+                        var raw = jsonInput ? jsonInput.value : '[]';
+                        galleryImages = JSON.parse(raw) || [];
+                        if (!Array.isArray(galleryImages)) galleryImages = [];
+                    } catch(e) {
+                        galleryImages = [];
+                    }
+
+                    function syncData() {
+                        if (jsonInput) {
+                            jsonInput.value = JSON.stringify(galleryImages);
+                        }
+                        if (countBadge) {
+                            countBadge.textContent = galleryImages.length;
+                        }
+                        renderGrid();
+                    }
+
+                    function renderGrid() {
+                        if (!gridContainer) return;
+                        if (galleryImages.length === 0) {
+                            gridContainer.innerHTML = '<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.88rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">' +
+                                '📸 No gallery photos added yet. Click <strong>Upload Multiple Photos</strong> or <strong>Choose from Media Library</strong> above.' +
+                            '</div>';
+                            return;
+                        }
+
+                        gridContainer.innerHTML = galleryImages.map(function(url, idx) {
+                            var filename = url.split('/').pop();
+                            return '<div class="gallery-item-card" data-idx="' + idx + '">' +
+                                '<button type="button" class="gallery-item-del-btn" data-del-idx="' + idx + '" title="Remove from gallery">&times;</button>' +
+                                '<img src="' + url + '" class="gallery-item-thumb" alt="Gallery Photo ' + (idx + 1) + '">' +
+                                '<div class="gallery-item-info">' +
+                                    '<span class="gallery-item-idx">#' + (idx + 1) + '</span>' +
+                                    '<span title="' + url + '">' + filename + '</span>' +
+                                '</div>' +
+                            '</div>';
+                        }).join('');
+
+                        // Bind delete buttons
+                        gridContainer.querySelectorAll('.gallery-item-del-btn').forEach(function(btn) {
+                            btn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                var delIdx = parseInt(this.getAttribute('data-del-idx'), 10);
+                                if (!isNaN(delIdx) && delIdx >= 0 && delIdx < galleryImages.length) {
+                                    galleryImages.splice(delIdx, 1);
+                                    syncData();
+                                }
+                            });
+                        });
+                    }
+
+                    // Multi Media Picker Click
+                    if (pickerBtn) {
+                        pickerBtn.addEventListener('click', function() {
+                            window.openMultiPicker(function(selectedUrls) {
+                                if (Array.isArray(selectedUrls) && selectedUrls.length > 0) {
+                                    selectedUrls.forEach(function(url) {
+                                        if (galleryImages.indexOf(url) === -1) {
+                                            galleryImages.push(url);
+                                        }
+                                    });
+                                    syncData();
+                                }
+                            });
+                        });
+                    }
+
+                    // Direct Multi-File Upload Click
+                    if (uploadBtn && fileInput) {
+                        uploadBtn.addEventListener('click', function() {
+                            fileInput.click();
+                        });
+
+                        fileInput.addEventListener('change', function() {
+                            if (!this.files || this.files.length === 0) return;
+                            var formData = new FormData();
+                            for (var i = 0; i < this.files.length; i++) {
+                                formData.append('files[]', this.files[i]);
+                            }
+
+                            var origText = uploadBtn.innerHTML;
+                            uploadBtn.innerHTML = '⏳ Uploading ' + this.files.length + ' photo(s)...';
+                            uploadBtn.disabled = true;
+
+                            fetch('/admin/media/quick-upload', {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(function(r) { return r.json(); })
+                            .then(function(res) {
+                                uploadBtn.innerHTML = origText;
+                                uploadBtn.disabled = false;
+                                if (res.success && Array.isArray(res.urls)) {
+                                    res.urls.forEach(function(u) {
+                                        if (galleryImages.indexOf(u) === -1) {
+                                            galleryImages.push(u);
+                                        }
+                                    });
+                                    syncData();
+                                } else if (res.success && res.url) {
+                                    if (galleryImages.indexOf(res.url) === -1) {
+                                        galleryImages.push(res.url);
+                                    }
+                                    syncData();
+                                } else {
+                                    alert(res.message || 'Upload failed');
+                                }
+                            })
+                            .catch(function() {
+                                uploadBtn.innerHTML = origText;
+                                uploadBtn.disabled = false;
+                                alert('Error uploading gallery photos.');
+                            });
+
+                            // reset file input
+                            fileInput.value = '';
+                        });
+                    }
+
+                    // Initial render
+                    syncData();
                 });
             };
 
@@ -1414,8 +1720,12 @@ Session::flush();
                 });
             }
 
-            document.addEventListener('DOMContentLoaded', window.initMediaUploaders);
+            document.addEventListener('DOMContentLoaded', function() {
+                window.initMediaUploaders();
+                window.initGalleryManagers();
+            });
             window.initMediaUploaders();
+            window.initGalleryManagers();
         })();
     </script>
 </body>
